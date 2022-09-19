@@ -19,7 +19,7 @@
 
 #Installing FinRL
 # Set colab status to trigger installs
-clb = True
+clb = False
 
 print(f'Preparing for colab: {clb}')
 pkgs = ['FinRL', 'optuna', 'Ray/rllib','plotly','ipywidgets']
@@ -61,7 +61,7 @@ import matplotlib.pyplot as plt
 import datetime
 import optuna
 from pathlib import Path
-from google.colab import files
+#from google.colab import files
 #get_ipython().run_line_magic('matplotlib', 'inline')
 from finrl import config
 from finrl import config_tickers
@@ -98,12 +98,12 @@ print(f'Torch device: {device}')
 
 
 ## Connect to GPU for faster processing
-gpu_info = get_ipython().getoutput('nvidia-smi')
-gpu_info = '\n'.join(gpu_info)
-if gpu_info.find('failed') >= 0:
-  print('Not connected to a GPU')
-else:
-  print(gpu_info)
+#gpu_info = get_ipython().getoutput('nvidia-smi')
+#gpu_info = '\n'.join(gpu_info)
+#if gpu_info.find('failed') >= 0:
+#  print('Not connected to a GPU')
+#else:
+#  print(gpu_info)
 
 
 # In[ ]:
@@ -220,7 +220,7 @@ print(f'Number of testing samples: {len(trade)}')
 stock_dimension = len(train.tic.unique())
 state_space = 1 + 2*stock_dimension + len(config.INDICATORS) * stock_dimension
 print(f"Stock Dimension: {stock_dimension}, State Space: {state_space}")
-
+num_stock_shares = [0] * stock_dimension
 
 # In[ ]:
 
@@ -236,7 +236,8 @@ env_kwargs = {
     "stock_dim": stock_dimension, 
     "tech_indicator_list": config.INDICATORS, 
     "action_space": stock_dimension, 
-    "reward_scaling": 1e-4
+    "reward_scaling": 1e-4,
+    "num_stock_shares": num_stock_shares
     
 }
 #Instantiate the training gym compatible environment
@@ -864,7 +865,7 @@ fig.show()
 # In[ ]:
 
 
-files.download('/content/final_ddpg_study__.pkl')
+#files.download('/content/final_ddpg_study__.pkl')
 
 
 # ## Further Works

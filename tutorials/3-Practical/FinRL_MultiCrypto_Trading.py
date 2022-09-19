@@ -47,7 +47,7 @@
 
 
 #get_ipython().run_line_magic('cd', '/FinRL-Meta/')
-from meta.env_crypto_trading.env_multiple_crypto import CryptoEnv
+from finrl.meta.env_cryptocurrency_trading.env_multiple_crypto import CryptoEnv
 
 
 # ## Functions for Training and Testing
@@ -55,20 +55,21 @@ from meta.env_crypto_trading.env_multiple_crypto import CryptoEnv
 # In[4]:
 
 
-from agents.elegantrl_models import DRLAgent as DRLAgent_erl
-from agents.rllib_models import DRLAgent as DRLAgent_rllib
-from agents.stablebaselines3_models import DRLAgent as DRLAgent_sb3
-from meta.data_processor import DataProcessor
+from finrl.agents.elegantrl.models import DRLAgent as DRLAgent_erl
+from finrl.agents.rllib.models import DRLAgent as DRLAgent_rllib
+from finrl.agents.stablebaselines3.models import DRLAgent as DRLAgent_sb3
+from finrl.meta.data_processor import DataProcessor
 
 def train(start_date, end_date, ticker_list, data_source, time_interval, 
           technical_indicator_list, drl_lib, env, model_name, if_vix=True,
           **kwargs):
     
     #process data using unified data processor
-    DP = DataProcessor(data_source, start_date, end_date, time_interval, **kwargs)
-    price_array, tech_array, turbulence_array = DP.run(ticker_list,
-                                                        technical_indicator_list, 
-                                                        if_vix, cache=True)
+    DP = DataProcessor(data_source, **kwargs)
+    price_array, tech_array, turbulence_array = DP.download_data(ticker_list,
+                                                        start_date,
+                                                        end_date, 
+                                                        time_interval)
 
     data_config = {'price_array': price_array,
                    'tech_array': tech_array,
@@ -139,12 +140,12 @@ def train(start_date, end_date, ticker_list, data_source, time_interval,
 
 
 # import DRL agents
-from agents.stablebaselines3_models import DRLAgent as DRLAgent_sb3
-from agents.rllib_models import DRLAgent as DRLAgent_rllib
-from agents.elegantrl_models import DRLAgent as DRLAgent_erl
+# from finrl.agents.stablebaselines3.models import DRLAgent as DRLAgent_sb3
+# from finrl.agents.rllib.models import DRLAgent as DRLAgent_rllib
+# from finrl.agents.elegantrl.models import DRLAgent as DRLAgent_erl
 
 # import data processor
-from meta.data_processor import DataProcessor
+# from meta.data_processor import DataProcessor
 
 def test(start_date, end_date, ticker_list, data_source, time_interval,
             technical_indicator_list, drl_lib, env, model_name, if_vix=True,
@@ -345,12 +346,17 @@ ERL_PARAMS = {"learning_rate": 2**-15,"batch_size": 2**11,
 # ## Training
 
 # In[9]:
+env_kwargs = {
+    "API_KEY": "1ddcbec72bef777aaee9343272ec1467", 
+    "API_SECRET": "dc42d89bed18b4009c9c60a2f6b45fd41daa86bf", 
+    "API_BASE_URL": "https://paper-api.alpaca.markets",
+}
 
 
 train(start_date=TRAIN_START_DATE, 
       end_date=TRAIN_END_DATE,
       ticker_list=TICKER_LIST, 
-      data_source='binance',
+      data_source='alpaca',
       time_interval='5m', 
       technical_indicator_list=INDICATORS,
       drl_lib='elegantrl', 
@@ -359,7 +365,8 @@ train(start_date=TRAIN_START_DATE,
       current_working_dir='./test_ppo',
       erl_params=ERL_PARAMS,
       break_step=5e4,
-      if_vix=False
+      if_vix=False,
+      **env_kwargs
       )
 
 
