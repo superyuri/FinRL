@@ -10,7 +10,7 @@
 
 
 #Installing FinRL
-%%capture
+#%%capture
 #get_ipython().system('pip install git+https://github.com/AI4Finance-LLC/FinRL-Library.git')
 
 
@@ -18,7 +18,7 @@
 
 
 #Installing Optuna
-%%capture
+#%%capture
 #get_ipython().system('pip3 install optuna')
 
 
@@ -128,6 +128,7 @@ print(len(trade))
 stock_dimension = len(train.tic.unique())
 state_space = 1 + 2*stock_dimension + len(config.INDICATORS) * stock_dimension
 print(f"Stock Dimension: {stock_dimension}, State Space: {state_space}")
+num_stock_shares = [0] * stock_dimension
 
 
 # In[ ]:
@@ -139,6 +140,7 @@ env_kwargs = {
     "hmax": 100, 
     "initial_amount": 1000000, 
     "buy_cost_pct": 0.001,
+    "num_stock_shares": num_stock_shares,
     "sell_cost_pct": 0.001,
     "state_space": state_space, 
     "stock_dim": stock_dimension, 

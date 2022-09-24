@@ -7,7 +7,7 @@
 
 
 #Installing FinRL
-%%capture
+#%%capture
 #get_ipython().system('pip install git+https://github.com/AI4Finance-LLC/FinRL-Library.git')
 
 

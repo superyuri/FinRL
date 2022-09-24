@@ -213,7 +213,7 @@ def train(config=None):
           technical_indicator_list, env, model_name,val_or_test = 'test'
       )
 
-Doanload data and pre-process data
+#Doanload data and pre-process data
 # In[ ]:
 
 
@@ -249,7 +249,7 @@ def val_or_test(start_date, end_date,run, ticker_list, data_source, time_interva
   
   return sharpe, episode_total_assets
 
-Set configures
+#Set configures
 # In[ ]:
 
 

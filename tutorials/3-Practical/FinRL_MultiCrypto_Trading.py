@@ -59,6 +59,7 @@ from finrl.agents.elegantrl.models import DRLAgent as DRLAgent_erl
 from finrl.agents.rllib.models import DRLAgent as DRLAgent_rllib
 from finrl.agents.stablebaselines3.models import DRLAgent as DRLAgent_sb3
 from finrl.meta.data_processor import DataProcessor
+import gym
 
 def train(start_date, end_date, ticker_list, data_source, time_interval, 
           technical_indicator_list, drl_lib, env, model_name, if_vix=True,
@@ -66,11 +67,17 @@ def train(start_date, end_date, ticker_list, data_source, time_interval,
     
     #process data using unified data processor
     DP = DataProcessor(data_source, **kwargs)
-    price_array, tech_array, turbulence_array = DP.download_data(ticker_list,
+    downloadData = DP.download_data(ticker_list,
                                                         start_date,
                                                         end_date, 
                                                         time_interval)
-
+    data = DP.clean_data(downloadData)
+    data = DP.add_technical_indicator(data, technical_indicator_list)
+    data = DP.add_turbulence(data)
+    if if_vix:
+        data = DP.add_vix(data)
+    
+    price_array, tech_array, turbulence_array = DP.df_to_array(data,if_vix)
     data_config = {'price_array': price_array,
                    'tech_array': tech_array,
                    'turbulence_array': turbulence_array}
@@ -219,7 +226,7 @@ def test(start_date, end_date, ticker_list, data_source, time_interval,
 import numpy as np
 import math
 
-class CryptoEnv:  # custom env
+class CryptoEnv(gym.Env):  # custom env
     def __init__(self, config, lookback=1, initial_capital=1e6, 
                  buy_cost_pct=1e-3, sell_cost_pct=1e-3, gamma=0.99):
         self.lookback = lookback
@@ -253,6 +260,8 @@ class CryptoEnv:  # custom env
         self.action_dim = self.price_array.shape[1]
         self.if_discrete = False
         self.target_return = 10
+        self.observation_space = gym.spaces.Box(low=-3000, high=3000, shape=(self.state_dim,), dtype=np.float32)
+        self.action_space = gym.spaces.Box(low=-1, high=1, shape=(self.action_dim,), dtype=np.float32)
 
 
     def reset(self) -> np.ndarray:
@@ -266,7 +275,7 @@ class CryptoEnv:  # custom env
         state = self.get_state()
         return state
 
-    def step(self, actions) -> (np.ndarray, float, bool, None):
+    def step(self, actions):
         self.time += 1
         
         price = self.price_array[self.time]
@@ -327,8 +336,11 @@ class CryptoEnv:  # custom env
 # In[8]:
 
 
-TICKER_LIST = ['BTCUSDT','ETHUSDT','ADAUSDT','BNBUSDT','XRPUSDT',
-                'SOLUSDT','DOTUSDT', 'DOGEUSDT','AVAXUSDT','UNIUSDT']
+#TICKER_LIST = ['BTCUSDT','ETHUSDT','ADAUSDT','BNBUSDT','XRPUSDT',
+#                'SOLUSDT','DOTUSDT', 'DOGEUSDT','AVAXUSDT','UNIUSDT']
+TICKER_LIST = ['BTC-USD','ETH-USD','ADA-USD','BNB-USD','XRP-USD',
+                'SOL-USD','DOT-USD', 'DOGE-USD','AVAX-USD','UNI-USD']
+
 env = CryptoEnv
 TRAIN_START_DATE = '2021-09-01'
 TRAIN_END_DATE = '2021-09-02'
@@ -338,10 +350,24 @@ TEST_END_DATE = '2021-09-30'
 
 INDICATORS = ['macd', 'rsi', 'cci', 'dx'] #self-defined technical indicator list is NOT supported yet
 
-ERL_PARAMS = {"learning_rate": 2**-15,"batch_size": 2**11,
-                "gamma": 0.99, "seed":312,"net_dimension": 2**9, 
-                "target_step": 5000, "eval_gap": 30, "eval_times": 1}
-
+ERL_PARAMS = {
+    "learning_rate": 3e-5,
+    "batch_size": 2048,
+    "gamma": 0.985,
+    "seed": 312,
+    "net_dimension": 512,
+    "target_step": 5000,
+    "eval_gap": 30,
+    "eval_times": 64,  # bug fix:KeyError: 'eval_times' line 68, in get_model model.eval_times = model_kwargs["eval_times"]
+}
+RLlib_PARAMS = {"lr": 5e-5, "train_batch_size": 500, "gamma": 0.99}
+PPO_PARAMS = {
+    "n_steps": 2048,
+    "ent_coef": 0.01,
+    "learning_rate": 0.00025,
+    "batch_size": 64,
+}
+A2C_PARAMS = {"n_steps": 5, "ent_coef": 0.01, "learning_rate": 0.0007}
 
 # ## Training
 
@@ -350,18 +376,20 @@ env_kwargs = {
     "API_KEY": "1ddcbec72bef777aaee9343272ec1467", 
     "API_SECRET": "dc42d89bed18b4009c9c60a2f6b45fd41daa86bf", 
     "API_BASE_URL": "https://paper-api.alpaca.markets",
+    "rllib_params": RLlib_PARAMS,
+    "agent_params": A2C_PARAMS,
 }
 
 
 train(start_date=TRAIN_START_DATE, 
       end_date=TRAIN_END_DATE,
       ticker_list=TICKER_LIST, 
-      data_source='alpaca',
-      time_interval='5m', 
+      data_source='yahoofinance',
+      time_interval='1D', 
       technical_indicator_list=INDICATORS,
-      drl_lib='elegantrl', 
+      drl_lib='stable_baselines3', 
       env=env, 
-      model_name='ppo', 
+      model_name='a2c', 
       current_working_dir='./test_ppo',
       erl_params=ERL_PARAMS,
       break_step=5e4,
@@ -378,12 +406,12 @@ train(start_date=TRAIN_START_DATE,
 account_value_erl = test(start_date = TEST_START_DATE, 
                         end_date = TEST_END_DATE,
                         ticker_list = TICKER_LIST, 
-                        data_source = 'binance',
-                        time_interval= '5m', 
+                        data_source = 'yahoofinance',
+                        time_interval= '1D', 
                         technical_indicator_list= INDICATORS,
-                        drl_lib='elegantrl', 
+                        drl_lib='stable_baselines3', 
                         env=env, 
-                        model_name='ppo', 
+                        model_name='a2c', 
                         current_working_dir='./test_ppo', 
                         net_dimension = 2**9, 
                         if_vix=False

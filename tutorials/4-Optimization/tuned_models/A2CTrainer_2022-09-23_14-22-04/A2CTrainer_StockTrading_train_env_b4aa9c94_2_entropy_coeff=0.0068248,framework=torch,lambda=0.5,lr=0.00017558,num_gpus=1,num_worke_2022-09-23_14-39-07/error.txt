@@ -1,0 +1,64 @@
+Failure # 1 (occurred at 2022-09-23_14-46-33)
+Traceback (most recent call last):
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\tune\ray_trial_executor.py", line 901, in get_next_executor_event
+    future_result = ray.get(ready_future)
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\_private\client_mode_hook.py", line 105, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\worker.py", line 1809, in get
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError: [36mray::A2CTrainer.train()[39m (pid=31524, ip=127.0.0.1, repr=A2CTrainer)
+  File "python\ray\_raylet.pyx", line 663, in ray._raylet.execute_task
+  File "python\ray\_raylet.pyx", line 667, in ray._raylet.execute_task
+  File "python\ray\_raylet.pyx", line 614, in ray._raylet.execute_task.function_executor
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\_private\function_manager.py", line 701, in actor_method_executor
+    return method(__ray_actor, *args, **kwargs)
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\util\tracing\tracing_helper.py", line 462, in _resume_span
+    return method(self, *_args, **_kwargs)
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\tune\trainable.py", line 349, in train
+    result = self.step()
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\util\tracing\tracing_helper.py", line 462, in _resume_span
+    return method(self, *_args, **_kwargs)
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\rllib\agents\trainer.py", line 1088, in step
+    raise e
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\rllib\agents\trainer.py", line 1074, in step
+    step_attempt_results = self.step_attempt()
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\util\tracing\tracing_helper.py", line 462, in _resume_span
+    return method(self, *_args, **_kwargs)
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\rllib\agents\trainer.py", line 1155, in step_attempt
+    step_results = self._exec_plan_or_training_iteration_fn()
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\util\tracing\tracing_helper.py", line 462, in _resume_span
+    return method(self, *_args, **_kwargs)
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\rllib\agents\trainer.py", line 2174, in _exec_plan_or_training_iteration_fn
+    results = next(self.train_exec_impl)
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\util\iter.py", line 779, in __next__
+    return next(self.built_iterator)
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\util\iter.py", line 807, in apply_foreach
+    for item in it:
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\util\iter.py", line 869, in apply_filter
+    for item in it:
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\util\iter.py", line 869, in apply_filter
+    for item in it:
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\util\iter.py", line 807, in apply_foreach
+    for item in it:
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\util\iter.py", line 904, in apply_flatten
+    for item in it:
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\util\iter.py", line 807, in apply_foreach
+    for item in it:
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\util\iter.py", line 807, in apply_foreach
+    for item in it:
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\util\iter.py", line 807, in apply_foreach
+    for item in it:
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\util\iter.py", line 492, in base_iterator
+    yield ray.get(futures, timeout=timeout)
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\_private\client_mode_hook.py", line 105, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\teigun\miniconda3\lib\site-packages\ray\worker.py", line 1811, in get
+    raise value
+ray.exceptions.RayActorError: The actor died unexpectedly before finishing this task.
+	class_name: RolloutWorker
+	actor_id: 8eeb3f85426d6fcbb4a9ed1a01000000
+	pid: 9892
+	namespace: e5177e62-0373-423d-9ab7-bafc65515b64
+	ip: 127.0.0.1
+The actor is dead because its worker process has died. Worker exit type: SYSTEM_ERROR_EXIT
+

@@ -1,0 +1,9 @@
+{
+  "entropy_coeff": 0.03134796286756069,
+  "env": "StockTrading_train_env",
+  "framework": "torch",
+  "lambda": 0.7,
+  "lr": 4.882794641318393e-05,
+  "num_gpus": 1,
+  "num_workers": 1
+}
