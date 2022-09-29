@@ -352,7 +352,7 @@ env_kwargs = {
 }
 
 
-'''train(start_date=TRAIN_START_DATE, 
+train(start_date=TRAIN_START_DATE, 
       end_date=TRAIN_END_DATE,
       ticker_list=TICKER_LIST, 
       data_source='yahoofinance',
@@ -366,7 +366,7 @@ env_kwargs = {
       break_step=5e4,
       if_vix=False,
       **env_kwargs
-      )'''
+      )
 
 
 # ## Testing
