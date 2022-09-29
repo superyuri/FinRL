@@ -56,7 +56,6 @@ from finrl.meta.env_cryptocurrency_trading.env_multiple_crypto import CryptoEnv
 
 
 from finrl.agents.elegantrl.models import DRLAgent as DRLAgent_erl
-from finrl.agents.rllib.models import DRLAgent as DRLAgent_rllib
 from finrl.agents.stablebaselines3.models import DRLAgent as DRLAgent_sb3
 from finrl.meta.data_processor import DataProcessor
 import gym
@@ -104,28 +103,6 @@ def train(start_date, end_date, ticker_list, data_source, time_interval,
                                           total_timesteps=break_step)
         
       
-    elif drl_lib == 'rllib':
-        total_episodes = kwargs.get('total_episodes', 100)
-        rllib_params = kwargs.get('rllib_params')
-
-        agent_rllib = DRLAgent_rllib(env = env,
-                       price_array=price_array,
-                       tech_array=tech_array,
-                       turbulence_array=turbulence_array)
-
-        model,model_config = agent_rllib.get_model(model_name)
-
-        model_config['lr'] = rllib_params['lr']
-        model_config['train_batch_size'] = rllib_params['train_batch_size']
-        model_config['gamma'] = rllib_params['gamma']
-
-        trained_model = agent_rllib.train_model(model=model, 
-                                          model_name=model_name,
-                                          model_config=model_config,
-                                          total_episodes=total_episodes)
-        trained_model.save(current_working_dir)
-        
-            
     elif drl_lib == 'stable_baselines3':
         total_timesteps = kwargs.get('total_timesteps', 1e6)
         agent_params = kwargs.get('agent_params')
@@ -159,12 +136,19 @@ def test(start_date, end_date, ticker_list, data_source, time_interval,
             **kwargs):
   
     #process data using unified data processor
-    DP = DataProcessor(data_source, start_date, end_date, time_interval, **kwargs)
-    price_array, tech_array, turbulence_array = DP.run(ticker_list,
-                                                        technical_indicator_list, 
-                                                        if_vix, cache=True)
+    DP = DataProcessor(data_source, **kwargs)
+    downloadData = DP.download_data(ticker_list,
+                                                        start_date,
+                                                        end_date, 
+                                                        time_interval)
+    data = DP.clean_data(downloadData)
+    data = DP.add_technical_indicator(data, technical_indicator_list)
+    data = DP.add_turbulence(data)
+    if if_vix:
+        data = DP.add_vix(data)
     
-    
+    price_array, tech_array, turbulence_array = DP.df_to_array(data,if_vix)
+        
     np.save('./price_array.npy', price_array)
     data_config = {'price_array':price_array,
                    'tech_array':tech_array,
@@ -191,19 +175,6 @@ def test(start_date, end_date, ticker_list, data_source, time_interval,
             cwd=current_working_dir,
             net_dimension=net_dimension,
             environment=env_instance,
-        )
-
-        return episode_total_assets
-
-    elif drl_lib == "rllib":
-        # load agent
-        episode_total_assets = DRLAgent_rllib.DRL_prediction(
-            model_name=model_name,
-            env=env,
-            price_array=price_array,
-            tech_array=tech_array,
-            turbulence_array=turbulence_array,
-            agent_path=current_working_dir,
         )
 
         return episode_total_assets
@@ -381,7 +352,7 @@ env_kwargs = {
 }
 
 
-train(start_date=TRAIN_START_DATE, 
+'''train(start_date=TRAIN_START_DATE, 
       end_date=TRAIN_END_DATE,
       ticker_list=TICKER_LIST, 
       data_source='yahoofinance',
@@ -395,7 +366,7 @@ train(start_date=TRAIN_START_DATE,
       break_step=5e4,
       if_vix=False,
       **env_kwargs
-      )
+      )'''
 
 
 # ## Testing
