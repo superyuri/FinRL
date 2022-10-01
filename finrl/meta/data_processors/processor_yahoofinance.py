@@ -328,6 +328,6 @@ class YahooFinanceProcessor:
         )
         trading_days = []
         for day in df:
-            trading_days = pd.concat([trading_days,str(day)[:10]])
+            trading_days.append(str(day)[:10])
 
         return trading_days
