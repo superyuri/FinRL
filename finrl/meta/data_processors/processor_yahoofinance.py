@@ -53,7 +53,7 @@ class YahooFinanceProcessor:
                 tic, start=start_date, end=end_date, interval=self.time_interval
             )  # bug fix: add interval for download
             temp_df["tic"] = tic
-            data_df = pd.concat(data_df,temp_df)
+            data_df = pd.concat([data_df,temp_df])
         # reset the index, we want to use numbers as index instead of dates
         data_df = data_df.reset_index()
         try:
@@ -102,7 +102,7 @@ class YahooFinanceProcessor:
                 NY = "America/New_York"
                 current_time = pd.Timestamp(day + " 09:30:00").tz_localize(NY)
                 for i in range(390):
-                    times = pd.concat(times,current_time)
+                    times = pd.concat([times,current_time])
                     current_time += pd.Timedelta(minutes=1)
         else:
             raise ValueError(
@@ -162,7 +162,7 @@ class YahooFinanceProcessor:
             # merge single ticker data to new DataFrame
             tmp_df = tmp_df.astype(float)
             tmp_df["tic"] = tic
-            new_df = pd.concat(new_df, tmp_df)
+            new_df = pd.concat([new_df, tmp_df])
 
             print(("Data clean for ") + tic + (" is finished."))
 
@@ -196,7 +196,7 @@ class YahooFinanceProcessor:
                     temp_indicator["time"] = df[df.tic == unique_ticker[i]][
                         "time"
                     ].to_list()
-                    indicator_df = pd.concat(indicator_df,temp_indicator, ignore_index=True)
+                    indicator_df = pd.concat([indicator_df,temp_indicator], ignore_index=True)
                 except Exception as e:
                     print(e)
             df = df.merge(
@@ -262,7 +262,7 @@ class YahooFinanceProcessor:
                     turbulence_temp = 0
             else:
                 turbulence_temp = 0
-            turbulence_index = pd.concat(turbulence_index,turbulence_temp)
+            turbulence_index = pd.concat([turbulence_index,turbulence_temp])
 
         turbulence_index = pd.DataFrame(
             {"time": df_price_pivot.index, "turbulence": turbulence_index}
@@ -328,6 +328,6 @@ class YahooFinanceProcessor:
         )
         trading_days = []
         for day in df:
-            trading_days = pd.concat(trading_days,str(day)[:10])
+            trading_days = pd.concat([trading_days,str(day)[:10]])
 
         return trading_days
