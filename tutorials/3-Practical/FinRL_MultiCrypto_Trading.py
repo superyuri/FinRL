@@ -313,11 +313,11 @@ TICKER_LIST = ['BTC-USD','ETH-USD','ADA-USD','BNB-USD','XRP-USD',
                 'SOL-USD','DOT-USD', 'DOGE-USD','AVAX-USD','UNI-USD']
 
 env = CryptoEnv
-TRAIN_START_DATE = '2021-09-01'
-TRAIN_END_DATE = '2021-09-02'
+TRAIN_START_DATE = '2022-01-01'
+TRAIN_END_DATE = '2022-08-31'
 
-TEST_START_DATE = '2021-09-21'
-TEST_END_DATE = '2021-09-30'
+TEST_START_DATE = '2022-09-01'
+TEST_END_DATE = '2022-09-30'
 
 INDICATORS = ['macd', 'rsi', 'cci', 'dx'] #self-defined technical indicator list is NOT supported yet
 
@@ -361,7 +361,7 @@ train(start_date=TRAIN_START_DATE,
       drl_lib='stable_baselines3', 
       env=env, 
       model_name='a2c', 
-      current_working_dir='./test_ppo',
+      current_working_dir='./test_a2c',
       erl_params=ERL_PARAMS,
       break_step=5e4,
       if_vix=False,
@@ -383,7 +383,7 @@ account_value_erl = test(start_date = TEST_START_DATE,
                         drl_lib='stable_baselines3', 
                         env=env, 
                         model_name='a2c', 
-                        current_working_dir='./test_ppo', 
+                        current_working_dir='./test_a2c', 
                         net_dimension = 2**9, 
                         if_vix=False
                         )
@@ -433,7 +433,9 @@ ax.yaxis.set_minor_locator(ticker.MultipleLocator(0.005))
 ax.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=2))
 ax.xaxis.set_major_formatter(ticker.FixedFormatter([]))'''
 plt.legend(fontsize=10.5)
-
+fileName = './a2c.png'
+plt.savefig(fileName)
+plt.close()
 
 # In[ ]:
 
