@@ -194,7 +194,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
     def _make_plot(self):
         df_asset_value = self.save_asset_memory()
         filename = '../data/' + self.path + '/{}_asset_memory_{}_{}.png'.format(self.prefix,self.episode,self.modal_name)
-        plt.plot(df_asset_value.race,df_asset_value.account_value,'r')
+        plt.plot(df_asset_value.date,df_asset_value.account_value,'r')
         plt.savefig(filename)
         plt.close()
 
@@ -204,7 +204,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
         df_action_value.to_csv(filename , mode = 'w', header = True, index = False)
 
     def step(self, actions):
-        if self.index >= len(self.race_memory)-1:
+        if self.index >= len(self.price_array)-1:
             self.terminal = True
 
         if self.terminal:
@@ -1024,13 +1024,13 @@ class AdvCryptoEnv(gym.Env):  # custom env
     def save_asset_memory(self):
         date_list = self.date_array
         asset_list = self.asset_memory[1:]
-        df_asset_value = pd.DataFrame({'race':date_list,'account_value':asset_list})
+        df_asset_value = pd.DataFrame({'date':date_list,'account_value':asset_list})
         return df_asset_value
 
     def save_actions_memory(self):
         date_list = self.date_array
         action_list = self.actions_memory[1:]
-        df_action_value = pd.DataFrame({'race':date_list,'action':action_list})
+        df_action_value = pd.DataFrame({'date':date_list,'action':action_list})
         return df_action_value
 
     def _seed(self, seed=None):
