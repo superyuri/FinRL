@@ -1007,10 +1007,10 @@ class AdvCryptoEnv(gym.Env):  # custom env
     def get_state(self):
         state =  np.hstack((self.cash, self.stocks * 2 ** -3))
         for i in range(self.lookback):
-            tech_i = self.tech_array[self.time-i]
+            tech_i = self.tech_array[self.index-i]
             normalized_tech_i = tech_i * 2 ** -15
             state = np.hstack((state, normalized_tech_i)).astype(np.float32)
-            turbulence_i = self.turbulence_array[self.time-i]
+            turbulence_i = self.turbulence_array[self.index-i]
             state = np.hstack((state, turbulence_i)).astype(np.float32)
         return state
     
