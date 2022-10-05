@@ -988,7 +988,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
         return np.array(self.state)
 
     def _initiate_state(self):
-        self.trades = [[]]
+        self.trades = [[0,0,0,0,0]]
         self.asset_memory = [self.initial_amount]
         self.rewards_memory = [0]
         self.actions_memory=[[0]]
