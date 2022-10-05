@@ -181,9 +181,10 @@ class AdvCryptoEnv(gym.Env):  # custom env
         amunt = available_amount
         price = self.price_array[self.index]
         for idx in range(len(self.trades)):#[action, para1-1,self.price_array[para1-1],volume,loss_price,win_price]
-            action = self.trades[idx][0]
-            tic = self.trades[idx][1]
-            volume = self.trades[idx][3]
+            trade =  self.trades[idx]
+            action = int(trade[0])
+            tic = int(trade[1])
+            volume = float(trade[3])
             if action == 1 :#買
                 available_amount += volume*price[tic]*(1-self.sell_cost_pct)
             elif action == 2 :#売
