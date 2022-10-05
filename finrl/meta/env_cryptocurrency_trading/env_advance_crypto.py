@@ -1053,7 +1053,7 @@ if __name__ == '__main__':
     turbulence_array ={'turbulence':[0,0,0,0,0,0,0,0,0,0]}
     config = {'prices_array':prices_array,'price_array':price_array,'tech_array':tech_array,'turbulence_array':turbulence_array}
 
-    env = AdvCryptoEnv('data',61,721,config,1,1000000,0.01,0.01,0.99,None,True,True,'P','PPO',True,False)
+    env = AdvCryptoEnv('data',52,721,config,1,1000000,0.01,0.01,0.99,None,True,True,'P','PPO',True,False)
     # It will check your custom environment and output additional warnings if needed
     check_env(env)
 

@@ -87,7 +87,7 @@ class CryptoAll:
             env_instance = env(config=data_config)
         elif(fl_model_name == 'advance'):
             env = AdvCryptoEnv
-            env_instance = env('data',61,721,data_config,1,1000000,0.01,0.01,0.99,None,True,True,'P',model_name,True,False)
+            env_instance = env('data',52,721,data_config,1,1000000,0.01,0.01,0.99,None,True,True,'P',model_name,True,False)
         else:
             raise ValueError("env is NOT supported. Please check.")
 
@@ -157,7 +157,7 @@ class CryptoAll:
             env_instance = env(config=data_config)
         elif(fl_model_name == 'advance'):
             env = AdvCryptoEnv
-            env_instance = env('data',61,721,data_config,1,1000000,0.01,0.01,0.99,None,True,True,'P',model_name,True,True)
+            env_instance = env('data',52,721,data_config,1,1000000,0.01,0.01,0.99,None,True,True,'P',model_name,True,True)
         else:
             raise ValueError("env is NOT supported. Please check.")
 
