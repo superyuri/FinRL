@@ -317,6 +317,34 @@ class YahooFinanceProcessor:
         print("Successfully transformed into array")
         return price_array, tech_array, turbulence_array
 
+    def df_to_array_new(self, df, tech_indicator_list, if_vix):
+        """transform final df to numpy arrays"""
+        unique_ticker = df.tic.unique()
+        print(unique_ticker)
+        if_first_time = True
+        for tic in unique_ticker:
+            if if_first_time:
+                prices_array = df[df.tic == tic][["time","open","high","low","close","volume"]].values
+                price_array = df[df.tic == tic][["adjcp"]].values
+                # price_ary = df[df.tic==tic]['close'].values
+                tech_array = df[df.tic == tic][tech_indicator_list].values
+                if if_vix:
+                    turbulence_array = df[df.tic == tic]["vix"].values
+                else:
+                    turbulence_array = df[df.tic == tic]["turbulence"].values
+                if_first_time = False
+            else:
+                price_array = np.hstack(
+                    [price_array, df[df.tic == tic][["adjcp"]].values]
+                )
+                tech_array = np.hstack(
+                    [tech_array, df[df.tic == tic][tech_indicator_list].values]
+                )
+        assert price_array.shape[0] == tech_array.shape[0]
+        assert tech_array.shape[0] == turbulence_array.shape[0]
+        print("Successfully transformed into array")
+        return prices_array, price_array, tech_array, turbulence_array
+
     def get_trading_days(self, start, end):
         nyse = tc.get_calendar("NYSE")
         df = nyse.sessions_in_range(
