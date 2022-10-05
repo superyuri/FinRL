@@ -127,54 +127,54 @@ class AdvCryptoEnv(gym.Env):  # custom env
 
             if para1 > 0 and para1 < 11:
                 use_amount = min(available_amount,use_amount)
-                volume = use_amount/self.price_array[para1-1]*(1-self.sell_cost_pct)
+                volume = use_amount/price[para1-1]*(1-self.sell_cost_pct)
                 self.stocks[para1-1] += volume
                 if para2 == 1:
-                    loss_price = self.price_array[para1-1]*0.9
+                    loss_price = price[para1-1]*0.9
                 elif para2 == 2:
-                    loss_price = self.price_array[para1-1]*0.7
+                    loss_price = price[para1-1]*0.7
                 elif para2 == 3:
-                    loss_price = self.price_array[para1-1]*0.5
+                    loss_price = price[para1-1]*0.5
                 else :
                     raise ValueError("para2 is NOT supported. Please check.")
                 if para3 == 1:
-                    win_price = self.price_array[para1-1]*1.2
+                    win_price = price[para1-1]*1.2
                 elif para3 == 2:
-                    win_price = self.price_array[para1-1]*1.4
+                    win_price = price[para1-1]*1.4
                 elif para3 == 3:
-                    win_price = self.price_array[para1-1]*1.6
+                    win_price = price[para1-1]*1.6
                 elif para3 == 4:
-                    win_price = self.price_array[para1-1]*1.8
+                    win_price = price[para1-1]*1.8
                 else :
                     raise ValueError("para3 is NOT supported. Please check.")
                 available_amount -= use_amount
-                self.trades += [action, para1-1,self.price_array[para1-1],volume,loss_price,win_price]
+                self.trades += [action, para1-1,price[para1-1],volume,loss_price,win_price]
         elif action == 2 :#売
             if para1 > 0 and para1 < 11:
-                volume = use_amount/self.price_array[para1-1]
+                volume = use_amount/price[para1-1]
                 self.stocks[para1-1] -= volume
-                use_amount = self.price_array[para1-1] * volume*(1-self.sell_cost_pct)
+                use_amount = price[para1-1] * volume*(1-self.sell_cost_pct)
                 if para2 == 1:
-                    loss_price = self.price_array[para1-1]*0.9
+                    loss_price =price[para1-1]*0.9
                 elif para2 == 2:
-                    loss_price = self.price_array[para1-1]*0.7
+                    loss_price = price[para1-1]*0.7
                 elif para2 == 3:
-                    loss_price = self.price_array[para1-1]*0.5
+                    loss_price = price[para1-1]*0.5
                 else :
                     raise ValueError("para2 is NOT supported. Please check.")
                 if para3 == 1:
-                    win_price = self.price_array[para1-1]*1.2
+                    win_price = price[para1-1]*1.2
                 elif para3 == 2:
-                    win_price = self.price_array[para1-1]*1.4
+                    win_price = price[para1-1]*1.4
                 elif para3 == 3:
-                    win_price = self.price_array[para1-1]*1.6
+                    win_price = price[para1-1]*1.6
                 elif para3 == 4:
-                    win_price = self.price_array[para1-1]*1.8
+                    win_price = price[para1-1]*1.8
                 else :
                     raise ValueError("para3 is NOT supported. Please check.")
 
                 available_amount += use_amount
-                self.trades += [action, para1-1,self.price_array[para1-1],volume,loss_price,win_price]
+                self.trades += [action, para1-1,price[para1-1],volume,loss_price,win_price]
         return available_amount
 
     def _calc_reward(self,available_amount):
