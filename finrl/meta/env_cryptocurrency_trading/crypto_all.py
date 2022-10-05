@@ -73,9 +73,10 @@ class CryptoAll:
         if if_vix:
             data = DP.add_vix(data)
         
-        prices_array, price_array, tech_array, turbulence_array = DP.df_to_array_new(data,if_vix)
-        data_config = {'prices_array': prices_array,
-                        'tic':TICKER_LIST,
+        date_array,high_array,low_array, price_array, tech_array, turbulence_array = DP.df_to_array_new(data,if_vix)
+        data_config = {'date_array': date_array,
+                        'high_array':high_array,
+                        'low_array':low_array,
                     'price_array': price_array,
                     'tech_array': tech_array,
                     'turbulence_array': turbulence_array}
@@ -141,16 +142,15 @@ class CryptoAll:
         if if_vix:
             data = DP.add_vix(data)
         
-        prices_array, price_array, tech_array, turbulence_array = DP.df_to_array_new(data,if_vix)
+        date_array,high_array,low_array, price_array, tech_array, turbulence_array = DP.df_to_array_new(data,if_vix)
+        data_config = {'date_array': date_array,
+                        'high_array':high_array,
+                        'low_array':low_array,
+                    'price_array': price_array,
+                    'tech_array': tech_array,
+                    'turbulence_array': turbulence_array}
             
         np.save('./price_array.npy', price_array)
-        data_config = {'prices_array':prices_array,
-                        'tic':TICKER_LIST,
-                    'price_array':price_array,
-                    'tech_array':tech_array,
-                    'turbulence_array':turbulence_array,
-                    "if_train": False,
-                    }
         #build environment using processed data
         if(fl_model_name == 'multiple'):
             env = CryptoEnv

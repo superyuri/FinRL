@@ -42,8 +42,9 @@ class AdvCryptoEnv(gym.Env):  # custom env
         self.buy_cost_pct = buy_cost_pct
         self.sell_cost_pct = sell_cost_pct
         self.gamma = gamma
-        self.prices_array = config['prices_array']
-        self.date_array = self.prices_array[self.prices_array.tic == config['tic']]['time'].values
+        self.date_array = config['date_array']
+        self.high_array = config['high_array']
+        self.low_array = config['low_array']
         self.price_array = config['price_array']
         self.tech_array = config['tech_array']
         self.turbulence_array = config['turbulence_array']
@@ -78,15 +79,16 @@ class AdvCryptoEnv(gym.Env):  # custom env
     #利益確保 1-4 [20%,40%,60%,80%]
     #資本量 1-3 [10%,20%,40%]
     def _buy_ticket_auto(self,available_amount):
-        prices = self.prices_array[self.index]
+        high_prices = self.high_array[self.index]
+        low_prices = self.low_array[self.index]
         for idx in range(len(self.trades)):#[action, para1-1,self.price_array[para1-1],self.stocks[para1-1],loss_price,win_price]
             action = self.trades[idx][0]
             tic = self.trades[idx][1]
             volume = self.trades[idx][3]
             loss_price = self.trades[idx][4]
             win_price = self.trades[idx][5]
-            high_price = prices[tic]["high"]
-            low_price = prices[tic]["low"]
+            high_price = high_prices[tic]["high"]
+            low_price = low_prices[tic]["low"]
             if action == 1 :#買
                 if  loss_price<=low_price :
                     #損失

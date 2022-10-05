@@ -324,7 +324,9 @@ class YahooFinanceProcessor:
         if_first_time = True
         for tic in unique_ticker:
             if if_first_time:
-                prices_array = df[df.tic == tic][["time","open","high","low","close","volume"]].values
+                date_array = df[df.tic == tic][["time"]].values
+                high_array = df[df.tic == tic][["high"]].values
+                low_array = df[df.tic == tic][["low"]].values
                 price_array = df[df.tic == tic][["adjcp"]].values
                 # price_ary = df[df.tic==tic]['close'].values
                 tech_array = df[df.tic == tic][tech_indicator_list].values
@@ -343,7 +345,7 @@ class YahooFinanceProcessor:
         assert price_array.shape[0] == tech_array.shape[0]
         assert tech_array.shape[0] == turbulence_array.shape[0]
         print("Successfully transformed into array")
-        return prices_array, price_array, tech_array, turbulence_array
+        return date_array,high_array,low_array, price_array, tech_array, turbulence_array
 
     def get_trading_days(self, start, end):
         nyse = tc.get_calendar("NYSE")
