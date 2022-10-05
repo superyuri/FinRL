@@ -1009,7 +1009,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
             tech_i = self.tech_array[self.index-i]
             normalized_tech_i = tech_i * 2 ** -15
             state = np.hstack((state, normalized_tech_i)).astype(np.float32)
-        state = np.hstack((state, turbulence_array)).astype(np.float32)
+        state = np.hstack((state, self.turbulence_array)).astype(np.float32)
         return state
     
     def _update_state(self, action, reward, amount, index):
