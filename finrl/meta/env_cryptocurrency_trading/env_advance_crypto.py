@@ -43,7 +43,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
         self.sell_cost_pct = sell_cost_pct
         self.gamma = gamma
         self.prices_array = config['prices_array']
-        self.date_array = self.prices_array['time']
+        self.date_array = self.prices_array[self.prices_array.tic == config['tic']]['time'].values
         self.price_array = config['price_array']
         self.tech_array = config['tech_array']
         self.turbulence_array = config['turbulence_array']
@@ -1051,7 +1051,7 @@ if __name__ == '__main__':
     tech_array = {'macd':[0,0,0,0,0,0,0,0,0,0],'rsi':[0,0,0,0,0,0,0,0,0,0],'cci':[0,0,0,0,0,0,0,0,0,0],'dx':[0,0,0,0,0,0,0,0,0,0]}
     turbulence_array ={'turbulence':[0,0,0,0,0,0,0,0,0,0]}
     config = {'prices_array':prices_array,'price_array':price_array,'tech_array':tech_array,'turbulence_array':turbulence_array}
-    
+
     env = AdvCryptoEnv('data',61,721,config,1,1000000,0.01,0.01,0.99,None,True,True,'P','PPO',True,False)
     # It will check your custom environment and output additional warnings if needed
     check_env(env)

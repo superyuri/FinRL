@@ -75,6 +75,7 @@ class CryptoAll:
         
         prices_array, price_array, tech_array, turbulence_array = DP.df_to_array_new(data,if_vix)
         data_config = {'prices_array': prices_array,
+                        'tic':TICKER_LIST,
                     'price_array': price_array,
                     'tech_array': tech_array,
                     'turbulence_array': turbulence_array}
@@ -144,6 +145,7 @@ class CryptoAll:
             
         np.save('./price_array.npy', price_array)
         data_config = {'prices_array':prices_array,
+                        'tic':TICKER_LIST,
                     'price_array':price_array,
                     'tech_array':tech_array,
                     'turbulence_array':turbulence_array,
