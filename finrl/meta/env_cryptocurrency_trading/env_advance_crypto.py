@@ -87,8 +87,8 @@ class AdvCryptoEnv(gym.Env):  # custom env
             volume = self.trades[idx][3]
             loss_price = self.trades[idx][4]
             win_price = self.trades[idx][5]
-            high_price = high_prices[tic]["high"]
-            low_price = low_prices[tic]["low"]
+            high_price = high_prices[tic]
+            low_price = low_prices[tic]
             if action == 1 :#買
                 if  loss_price<=low_price :
                     #損失
