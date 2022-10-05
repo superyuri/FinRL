@@ -71,6 +71,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
         self.is_real = is_real
         self.actions = self.createActions()
         self.legal = self.legal_actions()
+        self.if_discrete = True
 
     #action param1 param2 param3 param4
     #action 1買:2 売
@@ -148,7 +149,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
                 else :
                     raise ValueError("para3 is NOT supported. Please check.")
                 available_amount -= use_amount
-                self.trades += [action, para1-1,price[para1-1],volume,loss_price,win_price]
+                self.trades += [[action, para1-1,price[para1-1],volume,loss_price,win_price]]
         elif action == 2 :#売
             if para1 > 0 and para1 < 11:
                 volume = use_amount/price[para1-1]
@@ -174,17 +175,21 @@ class AdvCryptoEnv(gym.Env):  # custom env
                     raise ValueError("para3 is NOT supported. Please check.")
 
                 available_amount += use_amount
-                self.trades += [action, para1-1,price[para1-1],volume,loss_price,win_price]
+                self.trades += [[action, para1-1,price[para1-1],volume,loss_price,win_price]]
         return available_amount
 
     def _calc_reward(self,available_amount):
         amunt = available_amount
         price = self.price_array[self.index]
+        print(self.trades)        
+        print(len(self.trades))        
         for idx in range(len(self.trades)):#[action, para1-1,self.price_array[para1-1],volume,loss_price,win_price]
             trade =  self.trades[idx]
+            print(trade)
+            print(len(trade))
             action = int(trade[0])
             tic = int(trade[1])
-            volume = float(trade[3])
+            volume = trade[3]
             if action == 1 :#買
                 available_amount += volume*price[tic]*(1-self.sell_cost_pct)
             elif action == 2 :#売
@@ -204,7 +209,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
         filename = '../data/' + self.path + '/{}_actions_memory_{}_{}.csv'.format(self.prefix,self.episode,self.modal_name)
         df_action_value.to_csv(filename , mode = 'w', header = True, index = False)
 
-    def step(self, actions):
+    def step(self, actions) -> (np.ndarray, float, bool, None):
         if self.index >= len(self.price_array)-1:
             self.terminal = True
 
@@ -213,7 +218,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
                 self._make_plot()
             if self.make_csv:
                 self._make_csv()
-            return np.array(self.state), self.reward, self.terminal, {}
+            return self.state, self.reward, self.terminal, None
         else :
             available_amount = self.state[0]
             if  available_amount > 0:
@@ -236,7 +241,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
                 if self.make_csv:
                     self._make_csv()
                 
-        return np.array(self.state), self.reward, self.terminal, {}
+        return self.state, self.reward, self.terminal, None
 
 
     def getValidAction(self, action, size):
@@ -980,14 +985,11 @@ class AdvCryptoEnv(gym.Env):  # custom env
         ]
         return actions
 
-    def reset(self):  
+    def reset(self)-> np.ndarray:  
         self.state = self._initiate_state()
         self.episode+=1
-        return np.array(self.state)
+        return self.state
           
-    def render(self, mode='human',close=False):
-        return np.array(self.state)
-
     def _initiate_state(self):
         self.trades = [[0,0,0,0,0,0]]
         self.asset_memory = [self.initial_amount]
@@ -1038,6 +1040,8 @@ class AdvCryptoEnv(gym.Env):  # custom env
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
+    def close(self):
+        pass
 
     def get_sb_env(self):
         e = DummyVecEnv([lambda: self])
