@@ -997,7 +997,6 @@ class AdvCryptoEnv(gym.Env):  # custom env
         self.terminal = False
         self.current_price = self.price_array[self.index]
         self.current_tech = self.tech_array[self.index]
-        self.turbulence_array = self.turbulence_array[self.index]
         self.cash = self.initial_cash  # reset()
         self.stocks = np.zeros(self.crypto_num, dtype=np.float32)
         self.total_asset = self.cash
@@ -1010,8 +1009,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
             tech_i = self.tech_array[self.index-i]
             normalized_tech_i = tech_i * 2 ** -15
             state = np.hstack((state, normalized_tech_i)).astype(np.float32)
-            turbulence_i = self.turbulence_array[self.index-i]
-            state = np.hstack((state, turbulence_i)).astype(np.float32)
+        state = np.hstack((state, turbulence_array)).astype(np.float32)
         return state
     
     def _update_state(self, action, reward, amount, index):
