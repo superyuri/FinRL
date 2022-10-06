@@ -65,7 +65,6 @@ class AdvCryptoEnv(gym.Env):  # custom env
         self.make_plots = make_plots
         self.initial = initial
         self.state = self._initiate_state()
-        self._seed()
         self.episode = 0
         self.turbulence = 0
         self.make_csv = make_csv
@@ -96,10 +95,10 @@ class AdvCryptoEnv(gym.Env):  # custom env
                 self.stocks[tic] += volume
                 if  loss_price<=low_price :
                     #損失
-                    self.cash -=volume*loss_price(1-self.sell_cost_pct)
+                    self.cash -=volume*loss_price(1+self.sell_cost_pct)
                 elif win_price <= high_price :
                     #利益確保
-                    self.cash -=volume*win_price(1-self.sell_cost_pct)
+                    self.cash -=volume*win_price(1+self.sell_cost_pct)
             elif action == 2 :#売
                 self.trades[idx][0] = 0
                 self.stocks[tic] -= volume
@@ -108,7 +107,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
                     self.cash +=volume*loss_price(1-self.sell_cost_pct)
                 elif win_price <= low_price :
                     #利益確保
-                    self.cash +=volume*loss_price(1-self.sell_cost_pct)                
+                    self.cash +=volume*win_price(1-self.sell_cost_pct)                
 
     def _buy_ticket_new(self,action,para1,para2,para3,para4):
         price = self.price_array[self.index]
@@ -188,7 +187,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
             if action == 1 :#買
                 amount += volume*price[tic]*(1-self.sell_cost_pct)
             elif action == 2 :#売
-                amount -= volume*price[tic]*(1-self.buy_cost_pct)
+                amount -= volume*price[tic]*(1+self.buy_cost_pct)
         reward = amount - asset_amount
         print(amount) 
         print(reward) 
@@ -1033,17 +1032,8 @@ class AdvCryptoEnv(gym.Env):  # custom env
         df_action_value = pd.DataFrame({'date':date_list,'action':action_list})
         return df_action_value
 
-    def _seed(self, seed=None):
-        self.np_random, seed = seeding.np_random(seed)
-        return [seed]
-
     def close(self):
         pass
-
-    def get_sb_env(self):
-        e = DummyVecEnv([lambda: self])
-        obs = e.reset()
-        return e, obs
 
 # 動作確認
 if __name__ == '__main__':
