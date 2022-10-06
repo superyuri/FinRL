@@ -11,6 +11,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common import logger
+from typing import Tuple
 
 class AdvCryptoEnv(gym.Env):  # custom env
 
@@ -72,14 +73,14 @@ class AdvCryptoEnv(gym.Env):  # custom env
         self.actions = self.createActions()
         self.legal = self.legal_actions()
         self.if_discrete = True
-
+        
     #action param1 param2 param3 param4
     #action 1買:2 売
     #tic 1-10 ['BTC-JPY','ETH-JPY','BCH-JPY','LTC-JPY','XRP-JPY', 'XEM-JPY','XLM-JPY', 'BAT-JPY','OMG-JPY','XTZ-JPY']
     #損失止め 1-3 [10%,30%,50%]
     #利益確保 1-4 [20%,40%,60%,80%]
     #資本量 1-3 [10%,20%,40%]
-    def _buy_ticket_auto(self,available_amount):
+    def _buy_ticket_auto(self):
         high_prices = self.high_array[self.index]
         low_prices = self.low_array[self.index]
         for idx in range(len(self.trades)):#[action, para1-1,self.price_array[para1-1],self.stocks[para1-1],loss_price,win_price]
@@ -91,29 +92,25 @@ class AdvCryptoEnv(gym.Env):  # custom env
             high_price = high_prices[tic]
             low_price = low_prices[tic]
             if action == 1 :#買
+                self.trades[idx][0] = 0
+                self.stocks[tic] += volume
                 if  loss_price<=low_price :
                     #損失
-                    self.trades[idx][0] = 0
-                    self.stocks[tic] -= volume
-                    available_amount +=volume*loss_price(1-self.sell_cost_pct)
+                    self.cash -=volume*loss_price(1-self.sell_cost_pct)
                 elif win_price <= high_price :
                     #利益確保
-                    self.trades[idx][0] = 0
-                    self.stocks[tic] -= volume
-                    available_amount +=volume*win_price(1-self.sell_cost_pct)
+                    self.cash -=volume*win_price(1-self.sell_cost_pct)
             elif action == 2 :#売
+                self.trades[idx][0] = 0
+                self.stocks[tic] -= volume
                 if  loss_price<=high_price :
                     #損失
-                    self.trades[idx][0] = 0
-                    self.stocks[tic] += volume
-                    available_amount +=volume*loss_price(1-self.sell_cost_pct)
+                    self.cash +=volume*loss_price(1-self.sell_cost_pct)
                 elif win_price <= low_price :
                     #利益確保
-                    self.stocks[tic] += volume
-                    available_amount +=volume*loss_price(1-self.sell_cost_pct)                
-        return available_amount
+                    self.cash +=volume*loss_price(1-self.sell_cost_pct)                
 
-    def _buy_ticket_new(self,available_amount,action,para1,para2,para3,para4):
+    def _buy_ticket_new(self,action,para1,para2,para3,para4):
         price = self.price_array[self.index]
         if para4 == 1: 
             use_amount = self.initial_amount * 0.1
@@ -127,7 +124,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
         if action == 1 :#買
 
             if para1 > 0 and para1 < 11:
-                use_amount = min(available_amount,use_amount)
+                use_amount = min(self.cash,use_amount)
                 volume = use_amount/price[para1-1]*(1-self.sell_cost_pct)
                 self.stocks[para1-1] += volume
                 if para2 == 1:
@@ -148,7 +145,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
                     win_price = price[para1-1]*1.8
                 else :
                     raise ValueError("para3 is NOT supported. Please check.")
-                available_amount -= use_amount
+                self.cash -= use_amount
                 self.trades += [[action, para1-1,price[para1-1],volume,loss_price,win_price]]
         elif action == 2 :#売
             if para1 > 0 and para1 < 11:
@@ -174,28 +171,28 @@ class AdvCryptoEnv(gym.Env):  # custom env
                 else :
                     raise ValueError("para3 is NOT supported. Please check.")
 
-                available_amount += use_amount
+                self.cash += use_amount
                 self.trades += [[action, para1-1,price[para1-1],volume,loss_price,win_price]]
-        return available_amount
 
-    def _calc_reward(self,available_amount):
-        amunt = available_amount
+    def _calc_reward(self,asset_amount):
+        print(asset_amount) 
+        print(self.cash)
+        print(self.stocks)
+        amount = self.cash
         price = self.price_array[self.index]
-        print(self.trades)        
-        print(len(self.trades))        
         for idx in range(len(self.trades)):#[action, para1-1,self.price_array[para1-1],volume,loss_price,win_price]
             trade =  self.trades[idx]
-            print(trade)
-            print(len(trade))
             action = int(trade[0])
             tic = int(trade[1])
             volume = trade[3]
             if action == 1 :#買
-                available_amount += volume*price[tic]*(1-self.sell_cost_pct)
+                amount += volume*price[tic]*(1-self.sell_cost_pct)
             elif action == 2 :#売
-                available_amount -= volume*price[tic]*(1-self.buy_cost_pct)
-        reward = amunt - available_amount
-        return reward
+                amount -= volume*price[tic]*(1-self.buy_cost_pct)
+        reward = amount - asset_amount
+        print(amount) 
+        print(reward) 
+        return reward, amount
 
     def _make_plot(self):
         df_asset_value = self.save_asset_memory()
@@ -209,7 +206,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
         filename = '../data/' + self.path + '/{}_actions_memory_{}_{}.csv'.format(self.prefix,self.episode,self.modal_name)
         df_action_value.to_csv(filename , mode = 'w', header = True, index = False)
 
-    def step(self, actions) -> (np.ndarray, float, bool, None):
+    def step(self, actions) -> Tuple[np.ndarray, float, bool, None]:
         if self.index >= len(self.price_array)-1:
             self.terminal = True
 
@@ -220,19 +217,19 @@ class AdvCryptoEnv(gym.Env):  # custom env
                 self._make_csv()
             return self.state, self.reward, self.terminal, None
         else :
-            available_amount = self.state[0]
-            if  available_amount > 0:
+            asset_amount = self.state[0]
+            if  asset_amount > 0:
                 actions = self.getValidAction(actions, 0)
                 if not self.is_real:
                     self.reward = 0
                     for i in range(0, len(actions)//5, 1):
-                        available_amount = self._buy_ticket_auto(available_amount)
-                        available_amount = self._buy_ticket_new(available_amount, actions[5*i], actions[5*i+1], actions[5*i+2], actions[5*i+3], actions[5*i+4])
-                        reward = self._calc_reward(available_amount)
+                        self._buy_ticket_auto()
+                        self._buy_ticket_new(actions[5*i], actions[5*i+1], actions[5*i+2], actions[5*i+3], actions[5*i+4])
+                        reward,amount = self._calc_reward(asset_amount)
                         self.reward = self.reward*self.gamma + reward
-                    self.state = self._update_state(actions, self.reward, available_amount, self.index+1)
+                    self.state = self._update_state(actions, self.reward, amount, self.index+1)
                 else:
-                    self.state = self._update_state(actions, self.reward, available_amount, self.index+1)
+                    self.state = self._update_state(actions, self.reward, asset_amount, self.index+1)
 
             else:
                 self.terminal = True
@@ -1012,7 +1009,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
             tech_i = self.tech_array[self.index-i]
             normalized_tech_i = tech_i * 2 ** -15
             state = np.hstack((state, normalized_tech_i)).astype(np.float32)
-        current_turbulence = self.turbulence_array[self.index]
+        current_turbulence = self.turbulence_array[self.index] * 2 ** -3
         state = np.hstack((state, current_turbulence)).astype(np.float32)
         return state
     
