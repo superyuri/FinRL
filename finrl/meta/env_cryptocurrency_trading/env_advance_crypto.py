@@ -222,6 +222,8 @@ class AdvCryptoEnv(gym.Env):  # custom env
         else :
             asset_amount = self.state[0]
             if  asset_amount > 0:
+                actions = actions * self.hmax #actions initially is scaled between 0 to 1
+                actions = (actions.astype(int)) #convert into integer because we can't by fraction of shares
                 actions = self.getValidAction(actions, 0)
                 if not self.is_real:
                     for i in range(0, len(actions)//5, 1):
