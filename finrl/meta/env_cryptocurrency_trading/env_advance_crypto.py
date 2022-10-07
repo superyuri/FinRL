@@ -224,7 +224,6 @@ class AdvCryptoEnv(gym.Env):  # custom env
             if  asset_amount > 0:
                 actions = self.getValidAction(actions, 0)
                 if not self.is_real:
-                    self.reward = 0
                     for i in range(0, len(actions)//5, 1):
                         self._buy_ticket_auto()
                         self._buy_ticket_new(actions[5*i], actions[5*i+1], actions[5*i+2], actions[5*i+3], actions[5*i+4])
