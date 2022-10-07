@@ -45,6 +45,15 @@ SAC_PARAMS = {
     "batch_size": 64,
     "ent_coef": 0.1,
 }
+DQN_PARAMS = {
+    "learning_rate": 0.01,
+    "reward_decay": 0.9,
+    "e_greedy": 0.9,
+    "replace_target_iter": 300,
+    "memory_size": 500,
+    "batch_size": 32,
+    "e_greedy_increment": None,
+}
 
 class CryptoAll:
 
@@ -237,8 +246,8 @@ if __name__ == '__main__':
     
     #fl_model_names = ['multiple','advance']
     fl_model_names = ['advance']
-    #rl_model_names = ['A2C','DDPG','PPO','SAC','TD3']
-    rl_model_names = ['A2C']
+    #rl_model_names = ['A2C','DDPG','PPO','SAC','TD3','DQN']
+    rl_model_names = ['DQN']
     for fl_model_name in fl_model_names:
         if(fl_model_name == 'multiple'):
             env = CryptoEnv
@@ -288,6 +297,14 @@ if __name__ == '__main__':
                     "API_BASE_URL": "https://paper-api.alpaca.markets",
                     "rllib_params": RLlib_PARAMS,
                     "agent_params": TD3_PARAMS,
+                }
+            elif(rl_model_name == 'DQN'):
+                env_kwargs = {
+                    "API_KEY": "1ddcbec72bef777aaee9343272ec1467", 
+                    "API_SECRET": "dc42d89bed18b4009c9c60a2f6b45fd41daa86bf", 
+                    "API_BASE_URL": "https://paper-api.alpaca.markets",
+                    "rllib_params": RLlib_PARAMS,
+                    "agent_params": DQN_PARAMS,
                 }
             else:
                 raise ValueError("rl_model is NOT supported. Please check.")
