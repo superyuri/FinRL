@@ -87,7 +87,7 @@ class CryptoAll:
             env_instance = env(config=data_config)
         elif(fl_model_name == 'advance'):
             env = AdvCryptoEnv
-            env_instance = env('data',52,721,data_config,1,1000000,0.01,0.01,0.99,None,True,True,'P',model_name,True,False)
+            env_instance = env('data',52,721,data_config,1,1000000,0.01,0.01,0.99,None,False,True,'P',model_name,False,False)
         else:
             raise ValueError("env is NOT supported. Please check.")
 
@@ -111,7 +111,7 @@ class CryptoAll:
             
         
         elif drl_lib == 'stable_baselines3':
-            total_timesteps = kwargs.get('total_timesteps', 1e6)
+            total_timesteps = kwargs.get('total_timesteps', 1e5)
             agent_params = kwargs.get('agent_params')
 
             agent = DRLAgent_sb3(env = env_instance)

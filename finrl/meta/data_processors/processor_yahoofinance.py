@@ -339,6 +339,12 @@ class YahooFinanceProcessor:
                 price_array = np.hstack(
                     [price_array, df[df.tic == tic][["adjcp"]].values]
                 )
+                high_array = np.hstack(
+                    [high_array, df[df.tic == tic][["high"]].values]
+                )
+                low_array = np.hstack(
+                    [low_array, df[df.tic == tic][["low"]].values]
+                )
                 tech_array = np.hstack(
                     [tech_array, df[df.tic == tic][tech_indicator_list].values]
                 )

@@ -72,7 +72,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
         self.actions = self.createActions()
         self.legal = self.legal_actions()
         self.if_discrete = True
-        
+
     #action param1 param2 param3 param4
     #action 1買:2 売
     #tic 1-10 ['BTC-JPY','ETH-JPY','BCH-JPY','LTC-JPY','XRP-JPY', 'XEM-JPY','XLM-JPY', 'BAT-JPY','OMG-JPY','XTZ-JPY']
@@ -80,8 +80,8 @@ class AdvCryptoEnv(gym.Env):  # custom env
     #利益確保 1-4 [20%,40%,60%,80%]
     #資本量 1-3 [10%,20%,40%]
     def _buy_ticket_auto(self):
-        high_prices = self.high_array[self.index]
-        low_prices = self.low_array[self.index]
+        high_prices = self.high_array[self.time]
+        low_prices = self.low_array[self.time]
         for idx in range(len(self.trades)):#[action, para1-1,self.price_array[para1-1],self.stocks[para1-1],loss_price,win_price]
             action = self.trades[idx][0]
             tic = self.trades[idx][1]
@@ -95,32 +95,32 @@ class AdvCryptoEnv(gym.Env):  # custom env
                 self.stocks[tic] += volume
                 if  loss_price<=low_price :
                     #損失
-                    self.cash -=volume*loss_price(1+self.sell_cost_pct)
+                    self.cash -=volume*loss_price*(1+self.sell_cost_pct)
                 elif win_price <= high_price :
                     #利益確保
-                    self.cash -=volume*win_price(1+self.sell_cost_pct)
+                    self.cash -=volume*win_price*(1+self.sell_cost_pct)
             elif action == 2 :#売
                 self.trades[idx][0] = 0
                 self.stocks[tic] -= volume
                 if  loss_price<=high_price :
                     #損失
-                    self.cash +=volume*loss_price(1-self.sell_cost_pct)
+                    self.cash +=volume*loss_price*(1-self.sell_cost_pct)
                 elif win_price <= low_price :
                     #利益確保
-                    self.cash +=volume*win_price(1-self.sell_cost_pct)                
+                    self.cash +=volume*win_price*(1-self.sell_cost_pct)                
 
     def _buy_ticket_new(self,action,para1,para2,para3,para4):
-        price = self.price_array[self.index]
-        if para4 == 1: 
-            use_amount = self.initial_amount * 0.1
-        elif para4 == 2:
-            use_amount = self.initial_amount * 0.2
-        elif para4 == 3:
-            use_amount = self.initial_amount * 0.4
-        else :
-            raise ValueError("para4 is NOT supported. Please check.")
+        price = self.price_array[self.time]
 
         if action == 1 :#買
+            if para4 == 1: 
+                use_amount = self.initial_amount * 0.1
+            elif para4 == 2:
+                use_amount = self.initial_amount * 0.2
+            elif para4 == 3:
+                use_amount = self.initial_amount * 0.4
+            else :
+                raise ValueError("para4 is NOT supported. Please check.")
 
             if para1 > 0 and para1 < 11:
                 use_amount = min(self.cash,use_amount)
@@ -147,6 +147,14 @@ class AdvCryptoEnv(gym.Env):  # custom env
                 self.cash -= use_amount
                 self.trades += [[action, para1-1,price[para1-1],volume,loss_price,win_price]]
         elif action == 2 :#売
+            if para4 == 1: 
+                use_amount = self.initial_amount * 0.1
+            elif para4 == 2:
+                use_amount = self.initial_amount * 0.2
+            elif para4 == 3:
+                use_amount = self.initial_amount * 0.4
+            else :
+                raise ValueError("para4 is NOT supported. Please check.")
             if para1 > 0 and para1 < 11:
                 volume = use_amount/price[para1-1]
                 self.stocks[para1-1] -= volume
@@ -174,11 +182,8 @@ class AdvCryptoEnv(gym.Env):  # custom env
                 self.trades += [[action, para1-1,price[para1-1],volume,loss_price,win_price]]
 
     def _calc_reward(self,asset_amount):
-        print(asset_amount) 
-        print(self.cash)
-        print(self.stocks)
         amount = self.cash
-        price = self.price_array[self.index]
+        price = self.price_array[self.time]
         for idx in range(len(self.trades)):#[action, para1-1,self.price_array[para1-1],volume,loss_price,win_price]
             trade =  self.trades[idx]
             action = int(trade[0])
@@ -189,24 +194,23 @@ class AdvCryptoEnv(gym.Env):  # custom env
             elif action == 2 :#売
                 amount -= volume*price[tic]*(1+self.buy_cost_pct)
         reward = amount - asset_amount
-        print(amount) 
-        print(reward) 
+
         return reward, amount
 
     def _make_plot(self):
         df_asset_value = self.save_asset_memory()
-        filename = '../data/' + self.path + '/{}_asset_memory_{}_{}.png'.format(self.prefix,self.episode,self.modal_name)
+        filename = self.path + '/{}_asset_memory_{}_{}.png'.format(self.prefix,self.episode,self.modal_name)
         plt.plot(df_asset_value.date,df_asset_value.account_value,'r')
         plt.savefig(filename)
         plt.close()
 
     def _make_csv(self):
         df_action_value = self.save_actions_memory()
-        filename = '../data/' + self.path + '/{}_actions_memory_{}_{}.csv'.format(self.prefix,self.episode,self.modal_name)
+        filename = self.path + '/{}_actions_memory_{}_{}.csv'.format(self.prefix,self.episode,self.modal_name)
         df_action_value.to_csv(filename , mode = 'w', header = True, index = False)
 
     def step(self, actions) -> Tuple[np.ndarray, float, bool, None]:
-        if self.index >= len(self.price_array)-1:
+        if self.time >= len(self.price_array)-1:
             self.terminal = True
 
         if self.terminal:
@@ -226,9 +230,9 @@ class AdvCryptoEnv(gym.Env):  # custom env
                         self._buy_ticket_new(actions[5*i], actions[5*i+1], actions[5*i+2], actions[5*i+3], actions[5*i+4])
                         reward,amount = self._calc_reward(asset_amount)
                         self.reward = self.reward*self.gamma + reward
-                    self.state = self._update_state(actions, self.reward, amount, self.index+1)
+                    self.state = self._update_state(actions, self.reward, amount, self.time+1)
                 else:
-                    self.state = self._update_state(actions, self.reward, asset_amount, self.index+1)
+                    self.state = self._update_state(actions, self.reward, asset_amount, self.time+1)
 
             else:
                 self.terminal = True
@@ -991,10 +995,10 @@ class AdvCryptoEnv(gym.Env):  # custom env
         self.rewards_memory = [0]
         self.actions_memory=[[0]]
         self.reward = 0
-        self.index = 0
+        self.time = 0
         self.terminal = False
-        self.current_price = self.price_array[self.index]
-        self.current_tech = self.tech_array[self.index]        
+        self.current_price = self.price_array[self.time]
+        self.current_tech = self.tech_array[self.time]        
         self.cash = self.initial_cash  # reset()
         self.stocks = np.zeros(self.crypto_num, dtype=np.float32)
         self.total_asset = self.cash
@@ -1004,10 +1008,10 @@ class AdvCryptoEnv(gym.Env):  # custom env
     def get_state(self):
         state =  np.hstack((self.cash, self.stocks * 2 ** -3))
         for i in range(self.lookback):
-            tech_i = self.tech_array[self.index]
+            tech_i = self.tech_array[self.time]
             normalized_tech_i = tech_i * 2 ** -15
             state = np.hstack((state, normalized_tech_i)).astype(np.float32)
-        current_turbulence = self.turbulence_array[self.index] * 2 ** -3
+        current_turbulence = self.turbulence_array[self.time] * 2 ** -3
         state = np.hstack((state, current_turbulence)).astype(np.float32)
         return state
     
@@ -1015,19 +1019,27 @@ class AdvCryptoEnv(gym.Env):  # custom env
         self.asset_memory += [amount]
         self.rewards_memory += [reward]
         self.actions_memory += [action]
-        self.index = index
+        self.time = index
         self.cash = amount
         return self.get_state()
 
+    def getdate(self,date_list):
+        date =[]
+        for i in range(len(date_list)):
+            date = np.hstack((date, date_list[i][0]))
+        return date
+
     def save_asset_memory(self):
-        date_list = self.date_array
         asset_list = self.asset_memory[1:]
+        date_list = self.date_array[0:len(asset_list)]
+        date_list = self.getdate(date_list)        
         df_asset_value = pd.DataFrame({'date':date_list,'account_value':asset_list})
         return df_asset_value
 
     def save_actions_memory(self):
-        date_list = self.date_array
         action_list = self.actions_memory[1:]
+        date_list = self.date_array[0:len(action_list)]
+        date_list = self.getdate(date_list)
         df_action_value = pd.DataFrame({'date':date_list,'action':action_list})
         return df_action_value
 
