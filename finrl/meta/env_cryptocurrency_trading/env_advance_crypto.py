@@ -236,7 +236,6 @@ class AdvCryptoEnv(gym.Env):  # custom env
                     self._make_plot()
                 if self.make_csv:
                     self._make_csv()
-                
         return self.state, self.reward, self.terminal, None
 
 
@@ -1005,7 +1004,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
     def get_state(self):
         state =  np.hstack((self.cash, self.stocks * 2 ** -3))
         for i in range(self.lookback):
-            tech_i = self.tech_array[self.index-i]
+            tech_i = self.tech_array[self.index]
             normalized_tech_i = tech_i * 2 ** -15
             state = np.hstack((state, normalized_tech_i)).astype(np.float32)
         current_turbulence = self.turbulence_array[self.index] * 2 ** -3
@@ -1018,7 +1017,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
         self.actions_memory += [action]
         self.index = index
         self.cash = amount
-        return self.get_state
+        return self.get_state()
 
     def save_asset_memory(self):
         date_list = self.date_array
