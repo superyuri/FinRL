@@ -91,17 +91,17 @@ class CryptoAll:
                     'turbulence_array': turbulence_array}
 
         #build environment using processed data
-        if(fl_model_name == 'multiple'):
+        if(self.fl_model_name == 'multiple'):
             env = CryptoEnv
             env_instance = env(config=data_config)
-        elif(fl_model_name == 'advance'):
+        elif(self.fl_model_name == 'advance'):
             env = AdvCryptoEnv
             env_instance = env('data',52,721,data_config,1,1000000,0.01,0.01,0.99,None,False,True,'P',model_name,False,False)
         else:
             raise ValueError("env is NOT supported. Please check.")
 
         #read parameters and load agents
-        current_working_dir = kwargs.get('current_working_dir','./modal/' + fl_model_name+"_"+str(model_name))
+        current_working_dir = kwargs.get('current_working_dir','./modal/' + self.fl_model_name+"_"+str(model_name))
 
         if drl_lib == 'elegantrl':
             break_step = kwargs.get('break_step', 1e6)
@@ -161,10 +161,10 @@ class CryptoAll:
             
         np.save('./price_array.npy', price_array)
         #build environment using processed data
-        if(fl_model_name == 'multiple'):
+        if(self.fl_model_name == 'multiple'):
             env = CryptoEnv
             env_instance = env(config=data_config)
-        elif(fl_model_name == 'advance'):
+        elif(self.fl_model_name == 'advance'):
             env = AdvCryptoEnv
             env_instance = env('data',52,721,data_config,1,1000000,0.01,0.01,0.99,None,True,True,'P',model_name,True,False)
         else:
@@ -173,7 +173,7 @@ class CryptoAll:
 
         # load elegantrl needs state dim, action dim and net dim
         net_dimension = kwargs.get("net_dimension", 2 ** 7)
-        current_working_dir = kwargs.get("current_working_dir", "./modal/" + fl_model_name+"_"+str(model_name))
+        current_working_dir = kwargs.get("current_working_dir", "./modal/" + self.fl_model_name+"_"+str(model_name))
         print("price_array: ", len(price_array))
 
         if drl_lib == "elegantrl":
@@ -195,7 +195,7 @@ class CryptoAll:
         else:
             raise ValueError("DRL library input is NOT supported. Please check.")
 
-    def make_plot(self, account_value_erl, path,fl_model_names,rl_model_name):
+    def make_plot(self, account_value_erl, path,rl_model_name):
         account_value_erl = np.array(account_value_erl)
         agent_returns = account_value_erl/account_value_erl[0]
         #calculate buy-and-hold btc returns
@@ -230,7 +230,7 @@ class CryptoAll:
         ax.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=2))
         ax.xaxis.set_major_formatter(ticker.FixedFormatter([]))'''
         plt.legend(fontsize=10.5)
-        fileName = './' + path +'/'+fl_model_names+"_"+ rl_model_name + '.png'
+        fileName = './' + path +'/'+self.fl_model_name+"_"+ rl_model_name + '.png'
         plt.savefig(fileName)
         plt.close()
     
@@ -343,4 +343,4 @@ if __name__ == '__main__':
                     net_dimension = 2**9, 
                     if_vix=False
                     )
-            cryptoAll.make_plot(account_value_erl,'data',fl_model_name,rl_model_name.lower())                        
+            cryptoAll.make_plot(account_value_erl,'data',rl_model_name.lower())                        

@@ -22,7 +22,7 @@
 clb = False
 
 print(f'Preparing for colab: {clb}')
-pkgs = ['FinRL', 'optuna', 'Ray/rllib','plotly','ipywidgets']
+pkgs = ['FinRL', 'optuna', 'plotly','ipywidgets']
 if clb:
     print(f'Installing packages: {pkgs}')
 
@@ -71,11 +71,11 @@ from finrl.meta.preprocessor.preprocessors import FeatureEngineer, data_split
 from finrl.meta.env_stock_trading.env_stocktrading import StockTradingEnv
 from finrl.meta.env_stock_trading.env_stocktrading_np import StockTradingEnv as StockTradingEnv_numpy
 from finrl.agents.stablebaselines3.models import DRLAgent
-from finrl.agents.rllib.models import DRLAgent as DRLAgent_rllib
+#from finrl.agents.rllib.models import DRLAgent as DRLAgent_rllib
 from finrl.meta.data_processor import DataProcessor
 import joblib
 from finrl.plot import backtest_stats, backtest_plot, get_daily_return, get_baseline
-import ray
+#import ray
 from pprint import pprint
 import kaleido
 
@@ -546,7 +546,7 @@ def calc_trade_perf(pnl_d):
 def sample_ddpg_params(trial:optuna.Trial):
   # Size of the replay buffer
   buffer_size = trial.suggest_categorical("buffer_size", [int(1e4), int(1e5), int(1e6)])
-  learning_rate = trial.suggest_loguniform("learning_rate", 1e-5, 1)
+  learning_rate = trial.Trial.suggest_float("learning_rate", 1e-5, 1)
   batch_size = trial.suggest_categorical("batch_size", [32, 64, 128, 256, 512])
   
   return {"buffer_size": buffer_size,
@@ -750,7 +750,7 @@ def add_trade_perf_metric(df_actions,
   tpm = calc_trade_perf_metric(df_actions,trade,tp_metric)
   trp_metric = {'Value':tpm}
   df2 = pd.DataFrame(trp_metric,index=['Trade_Perf'])
-  perf_stats_all = perf_stats_all.append(df2)
+  perf_stats_all = pd.concat([perf_stats_all,df2])
   return perf_stats_all
 
 

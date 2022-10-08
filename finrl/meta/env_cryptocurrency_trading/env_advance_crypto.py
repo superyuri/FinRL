@@ -1053,6 +1053,11 @@ class AdvCryptoEnv(gym.Env):  # custom env
 
     def close(self):
         pass
+    
+    def get_sb_env(self):
+        e = DummyVecEnv([lambda: self])
+        obs = e.reset()
+        return e, obs
 
 # 動作確認
 if __name__ == '__main__':
