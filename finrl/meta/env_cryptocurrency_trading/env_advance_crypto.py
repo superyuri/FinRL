@@ -59,7 +59,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
         self.hmax = action_space
         self.prefix = prefix
         self.modal_name = modal_name
-        self.action_space = spaces.Discrete(self.hmax)
+        self.action_space = spaces.Box(low=0, high=1,shape=(1,))
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape = (self.state_space,))
         self.turbulence_threshold = turbulence_threshold
         self.make_plots = make_plots
@@ -222,6 +222,8 @@ class AdvCryptoEnv(gym.Env):  # custom env
         else :
             asset_amount = self.state[0]
             if  asset_amount > 0:
+                actions = actions * self.hmax
+                actions = actions[0].astype(int)
                 actions = self.getValidAction(actions, 0)
                 if not self.is_real:
                     for i in range(0, len(actions)//5, 1):
