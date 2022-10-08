@@ -101,7 +101,7 @@ class CryptoAll:
             raise ValueError("env is NOT supported. Please check.")
 
         #read parameters and load agents
-        current_working_dir = kwargs.get('current_working_dir','./'+str(model_name))
+        current_working_dir = kwargs.get('current_working_dir','./modal/' + fl_model_name+"_"+str(model_name))
 
         if drl_lib == 'elegantrl':
             break_step = kwargs.get('break_step', 1e6)
@@ -173,7 +173,7 @@ class CryptoAll:
 
         # load elegantrl needs state dim, action dim and net dim
         net_dimension = kwargs.get("net_dimension", 2 ** 7)
-        current_working_dir = kwargs.get("current_working_dir", "./" + str(model_name))
+        current_working_dir = kwargs.get("current_working_dir", "./modal/" + fl_model_name+"_"+str(model_name))
         print("price_array: ", len(price_array))
 
         if drl_lib == "elegantrl":
@@ -195,7 +195,7 @@ class CryptoAll:
         else:
             raise ValueError("DRL library input is NOT supported. Please check.")
 
-    def make_plot(self, account_value_erl, rl_model_name):
+    def make_plot(self, account_value_erl, path,fl_model_names,rl_model_name):
         account_value_erl = np.array(account_value_erl)
         agent_returns = account_value_erl/account_value_erl[0]
         #calculate buy-and-hold btc returns
@@ -230,7 +230,7 @@ class CryptoAll:
         ax.yaxis.set_major_formatter(ticker.PercentFormatter(xmax=1, decimals=2))
         ax.xaxis.set_major_formatter(ticker.FixedFormatter([]))'''
         plt.legend(fontsize=10.5)
-        fileName = './' + rl_model_name + '.png'
+        fileName = './' + path +'/'+fl_model_names+"_"+ rl_model_name + '.png'
         plt.savefig(fileName)
         plt.close()
     
@@ -242,12 +242,12 @@ if __name__ == '__main__':
     TEST_START_DATE = '2022-09-01'
     TEST_END_DATE = '2022-09-30'
 
-    DRL_LIB = 'stable_baselines3'
+    DRL_LIB = 'stable_baselines3' #'elegantrl'
     
     #fl_model_names = ['multiple','advance']
-    fl_model_names = ['advance']
+    fl_model_names = ['multiple','advance']
     #rl_model_names = ['A2C','DDPG','PPO','SAC','TD3','DQN']
-    rl_model_names = ['DQN']
+    rl_model_names = ['A2C','PPO']
     for fl_model_name in fl_model_names:
         if(fl_model_name == 'multiple'):
             env = CryptoEnv
@@ -257,7 +257,7 @@ if __name__ == '__main__':
             raise ValueError("env is NOT supported. Please check.")
         
         for rl_model_name in rl_model_names:
-            CURRENT_WORKING_DIR = './test_'+rl_model_name.lower()
+            CURRENT_WORKING_DIR = './modal/'+fl_model_name+"_"+rl_model_name.lower()
             if(rl_model_name == 'A2C'):
                 env_kwargs = {
                     "API_KEY": "1ddcbec72bef777aaee9343272ec1467", 
@@ -343,4 +343,4 @@ if __name__ == '__main__':
                     net_dimension = 2**9, 
                     if_vix=False
                     )
-            cryptoAll.make_plot(account_value_erl,rl_model_name.lower())                        
+            cryptoAll.make_plot(account_value_erl,'data',fl_model_name,rl_model_name.lower())                        

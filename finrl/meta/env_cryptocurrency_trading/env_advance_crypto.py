@@ -92,22 +92,22 @@ class AdvCryptoEnv(gym.Env):  # custom env
             low_price = low_prices[tic]
             if action == 1 :#買
                 self.trades[idx][0] = 0
-                self.stocks[tic] += volume
+                self.stocks[tic] -= volume
                 if  loss_price<=low_price :
                     #損失
-                    self.cash -=volume*loss_price*(1+self.sell_cost_pct)
+                    self.cash +=volume*loss_price*(1-self.sell_cost_pct)
                 elif win_price <= high_price :
                     #利益確保
-                    self.cash -=volume*win_price*(1+self.sell_cost_pct)
+                    self.cash +=volume*win_price*(1-self.sell_cost_pct)
             elif action == 2 :#売
                 self.trades[idx][0] = 0
-                self.stocks[tic] -= volume
+                self.stocks[tic] += volume
                 if  loss_price<=high_price :
                     #損失
-                    self.cash +=volume*loss_price*(1-self.sell_cost_pct)
+                    self.cash -=volume*loss_price*(1+self.buy_cost_pct)
                 elif win_price <= low_price :
                     #利益確保
-                    self.cash +=volume*win_price*(1-self.sell_cost_pct)                
+                    self.cash -=volume*win_price*(1+self.buy_cost_pct)                
 
     def _buy_ticket_new(self,action,para1,para2,para3,para4):
         price = self.price_array[self.time]
@@ -118,7 +118,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
             elif para4 == 2:
                 use_amount = self.initial_amount * 0.2
             elif para4 == 3:
-                use_amount = self.initial_amount * 0.4
+                use_amount = self.initial_amount * 0.3
             else :
                 raise ValueError("para4 is NOT supported. Please check.")
 
@@ -127,21 +127,21 @@ class AdvCryptoEnv(gym.Env):  # custom env
                 volume = use_amount/price[para1-1]*(1-self.sell_cost_pct)
                 self.stocks[para1-1] += volume
                 if para2 == 1:
-                    loss_price = price[para1-1]*0.9
+                    loss_price = price[para1-1]*0.95
                 elif para2 == 2:
-                    loss_price = price[para1-1]*0.7
+                    loss_price = price[para1-1]*0.90
                 elif para2 == 3:
-                    loss_price = price[para1-1]*0.5
+                    loss_price = price[para1-1]*0.85
                 else :
                     raise ValueError("para2 is NOT supported. Please check.")
                 if para3 == 1:
-                    win_price = price[para1-1]*1.2
+                    win_price = price[para1-1]*1.1
                 elif para3 == 2:
-                    win_price = price[para1-1]*1.4
+                    win_price = price[para1-1]*1.2
                 elif para3 == 3:
-                    win_price = price[para1-1]*1.6
+                    win_price = price[para1-1]*1.3
                 elif para3 == 4:
-                    win_price = price[para1-1]*1.8
+                    win_price = price[para1-1]*1.4
                 else :
                     raise ValueError("para3 is NOT supported. Please check.")
                 self.cash -= use_amount
@@ -160,21 +160,21 @@ class AdvCryptoEnv(gym.Env):  # custom env
                 self.stocks[para1-1] -= volume
                 use_amount = price[para1-1] * volume*(1-self.sell_cost_pct)
                 if para2 == 1:
-                    loss_price =price[para1-1]*0.9
+                    loss_price =price[para1-1]*0.95
                 elif para2 == 2:
-                    loss_price = price[para1-1]*0.7
+                    loss_price = price[para1-1]*0.90
                 elif para2 == 3:
-                    loss_price = price[para1-1]*0.5
+                    loss_price = price[para1-1]*0.85
                 else :
                     raise ValueError("para2 is NOT supported. Please check.")
                 if para3 == 1:
-                    win_price = price[para1-1]*1.2
+                    win_price = price[para1-1]*1.1
                 elif para3 == 2:
-                    win_price = price[para1-1]*1.4
+                    win_price = price[para1-1]*1.2
                 elif para3 == 3:
-                    win_price = price[para1-1]*1.6
+                    win_price = price[para1-1]*1.3
                 elif para3 == 4:
-                    win_price = price[para1-1]*1.8
+                    win_price = price[para1-1]*1.4
                 else :
                     raise ValueError("para3 is NOT supported. Please check.")
 
@@ -182,6 +182,11 @@ class AdvCryptoEnv(gym.Env):  # custom env
                 self.trades += [[action, para1-1,price[para1-1],volume,loss_price,win_price]]
 
     def _calc_reward(self,asset_amount):
+        #print("asset_amount=",asset_amount)
+        #print("self.cash=",self.cash)
+        #print("self.stocks=",self.stocks)
+        #print("self.current_price=",self.current_price)
+        #print("self.trades=",self.trades)
         amount = self.cash
         price = self.price_array[self.time]
         for idx in range(len(self.trades)):#[action, para1-1,self.price_array[para1-1],volume,loss_price,win_price]
@@ -194,6 +199,8 @@ class AdvCryptoEnv(gym.Env):  # custom env
             elif action == 2 :#売
                 amount -= volume*price[tic]*(1+self.buy_cost_pct)
         reward = amount - asset_amount
+        #print("amount=",amount)
+        #print("reward=",reward)
 
         return reward, amount
 
@@ -220,7 +227,7 @@ class AdvCryptoEnv(gym.Env):  # custom env
                 self._make_csv()
             return self.state, self.reward, self.terminal, None
         else :
-            asset_amount = self.state[0]
+            asset_amount = self.total_asset
             if  asset_amount > 0:
                 actions = actions * self.hmax
                 actions = actions[0].astype(int)
@@ -229,9 +236,9 @@ class AdvCryptoEnv(gym.Env):  # custom env
                     for i in range(0, len(actions)//5, 1):
                         self._buy_ticket_auto()
                         self._buy_ticket_new(actions[5*i], actions[5*i+1], actions[5*i+2], actions[5*i+3], actions[5*i+4])
-                        reward,amount = self._calc_reward(asset_amount)
+                        reward,asset_amount = self._calc_reward(asset_amount)
                         self.reward = self.reward*self.gamma + reward
-                    self.state = self._update_state(actions, self.reward, amount, self.time+1)
+                    self.state = self._update_state(actions, self.reward, asset_amount, self.time+1)
                 else:
                     self.state = self._update_state(actions, self.reward, asset_amount, self.time+1)
 
@@ -1016,12 +1023,12 @@ class AdvCryptoEnv(gym.Env):  # custom env
         state = np.hstack((state, current_turbulence)).astype(np.float32)
         return state
     
-    def _update_state(self, action, reward, amount, index):
-        self.asset_memory += [amount]
+    def _update_state(self, action, reward, asset_amount, index):
+        self.asset_memory += [asset_amount]
         self.rewards_memory += [reward]
         self.actions_memory += [action]
         self.time = index
-        self.cash = amount
+        self.total_asset = asset_amount
         return self.get_state()
 
     def getdate(self,date_list):
