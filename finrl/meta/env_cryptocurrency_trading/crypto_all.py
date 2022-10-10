@@ -242,8 +242,14 @@ if __name__ == '__main__':
     TEST_START_DATE = '2022-09-01'
     TEST_END_DATE = '2022-09-30'
 
-    DRL_LIB = 'stable_baselines3' #'elegantrl'
+    DRL_LIB = 'stable_baselines3' #'elegantrl','stable_baselines3'
+    API_KEY = "1ddcbec72bef777aaee9343272ec1467"
+    API_SECRET = "dc42d89bed18b4009c9c60a2f6b45fd41daa86bf"
+    API_BASE_URL = "https://paper-api.alpaca.markets"
     
+    DATA_SOURCE='gmo'#'yahoofinance','gmo'
+    TIME_INTERVAL='1min'#'1D','1min'
+
     #fl_model_names = ['multiple','advance']
     fl_model_names = ['multiple','advance']
     #rl_model_names = ['A2C','DDPG','PPO','SAC','TD3','DQN']
@@ -260,49 +266,49 @@ if __name__ == '__main__':
             CURRENT_WORKING_DIR = './modal/'+fl_model_name+"_"+rl_model_name.lower()
             if(rl_model_name == 'A2C'):
                 env_kwargs = {
-                    "API_KEY": "1ddcbec72bef777aaee9343272ec1467", 
-                    "API_SECRET": "dc42d89bed18b4009c9c60a2f6b45fd41daa86bf", 
-                    "API_BASE_URL": "https://paper-api.alpaca.markets",
+                    "API_KEY": API_KEY, 
+                    "API_SECRET": API_SECRET, 
+                    "API_BASE_URL": API_BASE_URL,
                     "rllib_params": RLlib_PARAMS,
                     "agent_params": A2C_PARAMS,
                 }
             elif(rl_model_name == 'DDPG'):
                 env_kwargs = {
-                    "API_KEY": "1ddcbec72bef777aaee9343272ec1467", 
-                    "API_SECRET": "dc42d89bed18b4009c9c60a2f6b45fd41daa86bf", 
-                    "API_BASE_URL": "https://paper-api.alpaca.markets",
+                    "API_KEY": API_KEY, 
+                    "API_SECRET": API_SECRET, 
+                    "API_BASE_URL": API_BASE_URL,
                     "rllib_params": RLlib_PARAMS,
                     "agent_params": DDPG_PARAMS,
                 }
             elif(rl_model_name == 'PPO'):
                 env_kwargs = {
-                    "API_KEY": "1ddcbec72bef777aaee9343272ec1467", 
-                    "API_SECRET": "dc42d89bed18b4009c9c60a2f6b45fd41daa86bf", 
-                    "API_BASE_URL": "https://paper-api.alpaca.markets",
+                    "API_KEY": API_KEY, 
+                    "API_SECRET": API_SECRET, 
+                    "API_BASE_URL": API_BASE_URL,
                     "rllib_params": RLlib_PARAMS,
                     "agent_params": PPO_PARAMS,
                 }
             elif(rl_model_name == 'SAC'):
                 env_kwargs = {
-                    "API_KEY": "1ddcbec72bef777aaee9343272ec1467", 
-                    "API_SECRET": "dc42d89bed18b4009c9c60a2f6b45fd41daa86bf", 
-                    "API_BASE_URL": "https://paper-api.alpaca.markets",
+                    "API_KEY": API_KEY, 
+                    "API_SECRET": API_SECRET, 
+                    "API_BASE_URL": API_BASE_URL,
                     "rllib_params": RLlib_PARAMS,
                     "agent_params": SAC_PARAMS,
                 }
             elif(rl_model_name == 'TD3'):
                 env_kwargs = {
-                    "API_KEY": "1ddcbec72bef777aaee9343272ec1467", 
-                    "API_SECRET": "dc42d89bed18b4009c9c60a2f6b45fd41daa86bf", 
-                    "API_BASE_URL": "https://paper-api.alpaca.markets",
+                    "API_KEY": API_KEY, 
+                    "API_SECRET": API_SECRET, 
+                    "API_BASE_URL": API_BASE_URL,
                     "rllib_params": RLlib_PARAMS,
                     "agent_params": TD3_PARAMS,
                 }
             elif(rl_model_name == 'DQN'):
                 env_kwargs = {
-                    "API_KEY": "1ddcbec72bef777aaee9343272ec1467", 
-                    "API_SECRET": "dc42d89bed18b4009c9c60a2f6b45fd41daa86bf", 
-                    "API_BASE_URL": "https://paper-api.alpaca.markets",
+                    "API_KEY": API_KEY, 
+                    "API_SECRET": API_SECRET, 
+                    "API_BASE_URL": API_BASE_URL,
                     "rllib_params": RLlib_PARAMS,
                     "agent_params": DQN_PARAMS,
                 }
@@ -315,8 +321,8 @@ if __name__ == '__main__':
             cryptoAll.train(start_date=TRAIN_START_DATE, 
                 end_date=TRAIN_END_DATE,
                 ticker_list=TICKER_LIST, 
-                data_source='yahoofinance',
-                time_interval='1D', 
+                data_source=DATA_SOURCE,
+                time_interval=TIME_INTERVAL, 
                 technical_indicator_list=INDICATORS,
                 drl_lib=DRL_LIB, 
                 env=env, 
@@ -333,8 +339,8 @@ if __name__ == '__main__':
             account_value_erl = cryptoAll.test(start_date = TEST_START_DATE, 
                     end_date = TEST_END_DATE,
                     ticker_list = TICKER_LIST, 
-                    data_source = 'yahoofinance',
-                    time_interval= '1D', 
+                    data_source = DATA_SOURCE,
+                    time_interval= TIME_INTERVAL, 
                     technical_indicator_list= INDICATORS,
                     drl_lib=DRL_LIB, 
                     env=env, 
