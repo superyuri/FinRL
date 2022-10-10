@@ -19,6 +19,7 @@ import traceback
 import gzip
 import codecs
 from logging import getLogger,INFO,StreamHandler,FileHandler
+from os import path
 
 class GMOProcessor:
     """Provides methods for retrieving daily stock data from
@@ -62,11 +63,12 @@ class GMOProcessor:
         data_df = pd.DataFrame()
         for tic in ticker_list:
             filename = tic + '_'+time_interval+'.csv'
+            if path.exists(filename):
+                os.remove(filename)
             self.count(start_date,end_date,tic,time_interval)
-            temp_df = pd.read_csv(filename, names=('date','open', 'high', 'low','close','volume'),index_col=0, skiprows=0)
-            temp_df["tic"] = tic
+            temp_df = pd.read_csv(filename, names=('date','open', 'high', 'low','close','volume','tic'),index_col=[0,6], skiprows=0)
             temp_df["adjcp"] = temp_df["close"]
-            data_df = pd.concat([data_df,temp_df])
+            data_df = pd.concat([data_df,temp_df],axis=0)
         # reset the index, we want to use numbers as index instead of dates
         data_df = data_df.reset_index()
         try:
@@ -114,7 +116,8 @@ class GMOProcessor:
             # ダウンロードしたCSVファイルの開始日 - 終了日を指定
             start_datetime = datetime.strptime(start_date + " 00:00:00", "%Y-%m-%d %H:%M:%S")
             end_datetime = datetime.strptime(end_date + " 00:00:00", "%Y-%m-%d %H:%M:%S")
-            fh = FileHandler(tic+'_'+time_interval+'.csv')
+            filename = tic+'_'+time_interval+'.csv'
+            fh = FileHandler(filename)
             logger.addHandler(fh)
             while start_datetime != end_datetime:
                 print("converting :", start_datetime)
@@ -145,7 +148,7 @@ class GMOProcessor:
                     else:
                         # CSV 出力
                         if current_min != -1:
-                            logger.info("{},{},{},{},{},{}".format(trade_datetime.strftime('%Y-%m-%d %H:%M:00'), ohlc['open'], ohlc['high'], ohlc['low'], ohlc['close'], ohlc['volume']))
+                            logger.info("{},{},{},{},{},{},{}".format(trade_datetime.strftime('%Y-%m-%d %H:%M:00'), ohlc['open'], ohlc['high'], ohlc['low'], ohlc['close'], ohlc['volume'], tic))
 
                         current_min = trade_datetime.minute
                         ohlc['open'] = price # 始値
@@ -156,6 +159,7 @@ class GMOProcessor:
 
                 # 1日加算
                 start_datetime = start_datetime + pd.Timedelta(days=1)
+            logger.removeHandler(fh)
         except KeyboardInterrupt:
             print("Stop with Keyboard Interrupt.")
         except Exception as e:

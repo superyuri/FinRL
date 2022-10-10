@@ -5,6 +5,7 @@ import pandas as pd
 
 from finrl.meta.data_processors.processor_alpaca import AlpacaProcessor as Alpaca
 from finrl.meta.data_processors.processor_wrds import WrdsProcessor as Wrds
+from finrl.meta.data_processors.processor_gmo import GMOProcessor as Gmo
 from finrl.meta.data_processors.processor_yahoofinance import (
     YahooFinanceProcessor as YahooFinance,
 )
@@ -28,6 +29,9 @@ class DataProcessor:
 
         elif data_source == "yahoofinance":
             self.processor = YahooFinance()
+
+        elif data_source == "gmo":
+            self.processor = Gmo()
 
         else:
             raise ValueError("Data source input is NOT supported yet.")
