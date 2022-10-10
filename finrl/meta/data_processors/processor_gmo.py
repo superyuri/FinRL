@@ -40,76 +40,33 @@ class GMOProcessor:
     def __init__(self):
         pass
 
-
+    # データダウンロード    
     def download_data(
         self, start_date: str, end_date: str, ticker_list: list, time_interval: str
     ) -> pd.DataFrame:
-        logger = getLogger(__name__)
-        logger.setLevel(INFO)
-        fh = FileHandler('one_min.csv')
-        logger.addHandler(fh)
+        """Fetches data from Yahoo API
+        Parameters
+        ----------
+        Returns
+        -------
+        `pd.DataFrame`
+            7 columns: A date, open, high, low, close, volume and tick symbol
+            for the specified stock ticker
+        """
+
         self.start = start_date
         self.end = end_date
         self.time_interval = time_interval
-
+        
         # Download and save the data in a pandas DataFrame:
         data_df = pd.DataFrame()
         for tic in ticker_list:
-            self.download(
-                tic, start=start_date, end=end_date
-            )
-            try:
-                # ダウンロードしたCSVファイルの開始日 - 終了日を指定
-                start_datetime = datetime.datetime.strptime("2021-04-01 00:00:00", "%Y-%m-%d %H:%M:%S")
-                end_datetime = datetime.datetime.strptime("2021-05-01 00:00:00", "%Y-%m-%d %H:%M:%S")
-
-                while start_datetime != end_datetime:
-                    print("converting :", start_datetime)
-                    year = str(start_datetime.year)
-                    month = str(start_datetime.strftime('%m'))
-                    day = str(start_datetime.strftime('%d'))
-                    filename = year + month + day + '_BTC_JPY.csv'
-
-                    # 元データ読み込み
-                    df = pd.read_csv(filename, names=('symbol', 'side', 'volume', 'price', 'timestamp'), skiprows=1)
-                    df["tic"] = tic
-                    data_df = pd.concat([data_df,df])
-                    volume_values = df.volume.values
-                    price_values = df.price.values
-                    timestamp_values = df.timestamp.values
-
-                    ohlc = { 'open': '', 'high': '', 'low': '', 'close': '', 'volume': '' }
-                    current_min = -1
-                    for i in range(0, len(df)):
-                        price = float(price_values[i])
-                        volume = float(volume_values[i])
-                        trade_datetime = datetime.datetime.strptime(timestamp_values[i], "%Y-%m-%d %H:%M:%S.%f")
-
-                        if trade_datetime.minute == current_min:
-                            ohlc['high'] = max(ohlc['high'], price)
-                            ohlc['low'] = min(ohlc['low'], price)
-                            ohlc['close'] = price
-                            ohlc['volume'] += volume
-                        else:
-                            # CSV 出力
-                            if current_min != -1:
-                                logger.info("{},{},{},{},{},{}".format(trade_datetime.strftime('%Y-%m-%d %H:%M:00'), ohlc['open'], ohlc['high'], ohlc['low'], ohlc['close'], ohlc['volume']))
-
-                            current_min = trade_datetime.minute
-                            ohlc['open'] = price # 始値
-                            ohlc['high'] = price # 高値
-                            ohlc['low'] = price # 安値
-                            ohlc['close'] = price # 終値
-                            ohlc['volume'] = volume # 取引量
-
-                    # 1日加算
-                    start_datetime = start_datetime + datetime.timedelta(days=1)
-            except KeyboardInterrupt:
-                print("Stop with Keyboard Interrupt.")
-            except Exception as e:
-                print(traceback.format_exc())
-            finally:
-                print("All stopped.")
+            filename = tic + '_'+time_interval+'.csv'
+            self.count(start_date,end_date,tic,time_interval)
+            temp_df = pd.read_csv(filename, names=('date','open', 'high', 'low','close','volume'),index_col=0, skiprows=0)
+            temp_df["tic"] = tic
+            temp_df["adjcp"] = temp_df["close"]
+            data_df = pd.concat([data_df,temp_df])
         # reset the index, we want to use numbers as index instead of dates
         data_df = data_df.reset_index()
         try:
@@ -120,16 +77,16 @@ class GMOProcessor:
                 "high",
                 "low",
                 "close",
-                "adjcp",
                 "volume",
                 "tic",
+                "adjcp",
             ]
         except NotImplementedError:
             print("the features are not supported currently")
         # create day of the week column (monday = 0)
         data_df["day"] = pd.to_datetime(data_df['date'], errors='coerce').dt.dayofweek
         # convert date to standard string format, easy to filter
-        data_df["date"] = data_df.date.apply(lambda x: x.strftime("%Y-%m-%d"))
+        #data_df["date"] = data_df.date.apply(lambda x: x.strftime("%Y-%m-%d"))
         # drop missing data
         data_df = data_df.dropna()
         data_df = data_df.reset_index(drop=True)
@@ -140,10 +97,77 @@ class GMOProcessor:
 
         return data_df
 
+
+    # 集計    
+    def count(
+        self, start_date: str, end_date: str, tic: str, time_interval: str
+    ) -> pd.DataFrame:
+        logger = getLogger(__name__)
+        logger.setLevel(INFO)
+
+        # Download and save the data in a pandas DataFrame:
+        data_df = pd.DataFrame()
+        self.download(
+            tic, start_date, end_date
+        )
+        try:
+            # ダウンロードしたCSVファイルの開始日 - 終了日を指定
+            start_datetime = datetime.strptime(start_date + " 00:00:00", "%Y-%m-%d %H:%M:%S")
+            end_datetime = datetime.strptime(end_date + " 00:00:00", "%Y-%m-%d %H:%M:%S")
+            fh = FileHandler(tic+'_'+time_interval+'.csv')
+            logger.addHandler(fh)
+            while start_datetime != end_datetime:
+                print("converting :", start_datetime)
+                year = str(start_datetime.year)
+                month = str(start_datetime.strftime('%m'))
+                day = str(start_datetime.strftime('%d'))
+                filename = year + month + day + '_'+tic+'.csv'
+
+                # 元データ読み込み
+                df = pd.read_csv(filename, names=('symbol', 'side', 'volume', 'price', 'timestamp'), skiprows=1)
+                os.remove(filename)
+                volume_values = df.volume.values
+                price_values = df.price.values
+                timestamp_values = df.timestamp.values
+
+                ohlc = { 'open': '', 'high': '', 'low': '', 'close': '', 'volume': '' }
+                current_min = -1
+                for i in range(0, len(df)):
+                    price = float(price_values[i])
+                    volume = float(volume_values[i])
+                    trade_datetime = datetime.strptime(timestamp_values[i], "%Y-%m-%d %H:%M:%S.%f")
+
+                    if trade_datetime.minute == current_min:
+                        ohlc['high'] = max(ohlc['high'], price)
+                        ohlc['low'] = min(ohlc['low'], price)
+                        ohlc['close'] = price
+                        ohlc['volume'] += volume
+                    else:
+                        # CSV 出力
+                        if current_min != -1:
+                            logger.info("{},{},{},{},{},{}".format(trade_datetime.strftime('%Y-%m-%d %H:%M:00'), ohlc['open'], ohlc['high'], ohlc['low'], ohlc['close'], ohlc['volume']))
+
+                        current_min = trade_datetime.minute
+                        ohlc['open'] = price # 始値
+                        ohlc['high'] = price # 高値
+                        ohlc['low'] = price # 安値
+                        ohlc['close'] = price # 終値
+                        ohlc['volume'] = volume # 取引量
+
+                # 1日加算
+                start_datetime = start_datetime + pd.Timedelta(days=1)
+        except KeyboardInterrupt:
+            print("Stop with Keyboard Interrupt.")
+        except Exception as e:
+            print(traceback.format_exc())
+        finally:
+            print("All stopped.")
+
+    # ダウンロード    
     def download(self, symbol: str, start_date: str, end_date: str):
         try:
-            start_datetime = datetime.datetime.strptime("2021-04-01 00:00:00", "%Y-%m-%d %H:%M:%S")
-            end_datetime = datetime.datetime.strptime("2021-05-01 00:00:00", "%Y-%m-%d %H:%M:%S")
+            start_datetime = datetime.strptime(start_date+" 00:00:00", "%Y-%m-%d %H:%M:%S")
+            end_datetime = datetime.strptime(end_date+" 00:00:00", "%Y-%m-%d %H:%M:%S")
 
             while start_datetime != end_datetime:
                 print("start donwload :", start_datetime)
@@ -163,7 +187,7 @@ class GMOProcessor:
                 os.remove(filename)
 
                 # 1日加算
-                start_datetime = start_datetime + datetime.timedelta(days=1)
+                start_datetime = start_datetime + pd.Timedelta(days=1)
         except KeyboardInterrupt:
             print("Stop with Keyboard Interrupt.")
         except Exception as e:
@@ -171,6 +195,7 @@ class GMOProcessor:
         finally:
             print("All stopped.")
 
+    # 解凍
     def unzip(self, filename):
         with gzip.open(filename) as f:
             newname = filename.replace(".gz", "")
@@ -639,4 +664,7 @@ class GMOProcessor:
 # 動作確認
 if __name__ == '__main__':
     processor = GMOProcessor()
-    print(processor.get_history('BTC'))
+    print(processor.download_data('2022-01-01','2022-01-31',['BTC','XRP'],'1min'))
+    #processor.count('2022-01-01','2022-01-31',['BTC'],'1min')
+    #processor.download('BTC','2022-01-01','2022-01-31')
+    #print(processor.get_history('BTC'))
