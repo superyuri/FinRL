@@ -66,9 +66,10 @@ class GMOProcessor:
             if path.exists(filename):
                 os.remove(filename)
             self.count(start_date,end_date,tic,time_interval)
-            temp_df = pd.read_csv(filename, names=('date','open', 'high', 'low','close','volume','tic'),index_col=[0,6], skiprows=0)
-            temp_df["adjcp"] = temp_df["close"]
-            data_df = pd.concat([data_df,temp_df],axis=0)
+            if path.exists(filename):
+                temp_df = pd.read_csv(filename, names=('date','open', 'high', 'low','close','volume','tic'),index_col=[0,6], skiprows=0)
+                temp_df["adjcp"] = temp_df["close"]
+                data_df = pd.concat([data_df,temp_df],axis=0)
         # reset the index, we want to use numbers as index instead of dates
         data_df = data_df.reset_index()
         try:
@@ -127,35 +128,36 @@ class GMOProcessor:
                 filename = year + month + day + '_'+tic+'.csv'
 
                 # 元データ読み込み
-                df = pd.read_csv(filename, names=('symbol', 'side', 'volume', 'price', 'timestamp'), skiprows=1)
-                os.remove(filename)
-                volume_values = df.volume.values
-                price_values = df.price.values
-                timestamp_values = df.timestamp.values
+                if path.exists(filename):
+                    df = pd.read_csv(filename, names=('symbol', 'side', 'volume', 'price', 'timestamp'), skiprows=1)
+                    os.remove(filename)
+                    volume_values = df.volume.values
+                    price_values = df.price.values
+                    timestamp_values = df.timestamp.values
 
-                ohlc = { 'open': '', 'high': '', 'low': '', 'close': '', 'volume': '' }
-                current_min = -1
-                for i in range(0, len(df)):
-                    price = float(price_values[i])
-                    volume = float(volume_values[i])
-                    trade_datetime = datetime.strptime(timestamp_values[i], "%Y-%m-%d %H:%M:%S.%f")
+                    ohlc = { 'open': '', 'high': '', 'low': '', 'close': '', 'volume': '' }
+                    current_min = -1
+                    for i in range(0, len(df)):
+                        price = float(price_values[i])
+                        volume = float(volume_values[i])
+                        trade_datetime = datetime.strptime(timestamp_values[i], "%Y-%m-%d %H:%M:%S.%f")
 
-                    if trade_datetime.minute == current_min:
-                        ohlc['high'] = max(ohlc['high'], price)
-                        ohlc['low'] = min(ohlc['low'], price)
-                        ohlc['close'] = price
-                        ohlc['volume'] += volume
-                    else:
-                        # CSV 出力
-                        if current_min != -1:
-                            logger.info("{},{},{},{},{},{},{}".format(trade_datetime.strftime('%Y-%m-%d %H:%M:00'), ohlc['open'], ohlc['high'], ohlc['low'], ohlc['close'], ohlc['volume'], tic))
+                        if trade_datetime.minute == current_min:
+                            ohlc['high'] = max(ohlc['high'], price)
+                            ohlc['low'] = min(ohlc['low'], price)
+                            ohlc['close'] = price
+                            ohlc['volume'] += volume
+                        else:
+                            # CSV 出力
+                            if current_min != -1:
+                                logger.info("{},{},{},{},{},{},{}".format(trade_datetime.strftime('%Y-%m-%d %H:%M:00'), ohlc['open'], ohlc['high'], ohlc['low'], ohlc['close'], ohlc['volume'], tic))
 
-                        current_min = trade_datetime.minute
-                        ohlc['open'] = price # 始値
-                        ohlc['high'] = price # 高値
-                        ohlc['low'] = price # 安値
-                        ohlc['close'] = price # 終値
-                        ohlc['volume'] = volume # 取引量
+                            current_min = trade_datetime.minute
+                            ohlc['open'] = price # 始値
+                            ohlc['high'] = price # 高値
+                            ohlc['low'] = price # 安値
+                            ohlc['close'] = price # 終値
+                            ohlc['volume'] = volume # 取引量
 
                 # 1日加算
                 start_datetime = start_datetime + pd.Timedelta(days=1)
@@ -668,7 +670,7 @@ class GMOProcessor:
 # 動作確認
 if __name__ == '__main__':
     processor = GMOProcessor()
-    print(processor.download_data('2022-01-01','2022-01-31',['BTC','XRP'],'1min'))
+    print(processor.download_data('2022-01-01','2022-01-31',['XTZ'],'1min'))
     #processor.count('2022-01-01','2022-01-31',['BTC'],'1min')
     #processor.download('BTC','2022-01-01','2022-01-31')
     #print(processor.get_history('BTC'))
