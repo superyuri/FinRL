@@ -102,7 +102,7 @@ class YahooFinanceProcessor:
                 NY = "America/New_York"
                 current_time = pd.Timestamp(day + " 09:30:00").tz_localize(NY)
                 for i in range(390):
-                    times = pd.concat([times,current_time])
+                    times += [current_time]
                     current_time += pd.Timedelta(minutes=1)
         else:
             raise ValueError(
@@ -112,7 +112,7 @@ class YahooFinanceProcessor:
         # fill NaN data
         new_df = pd.DataFrame()
         for tic in tic_list:
-            print(("Clean data for ") + tic)
+            print("Clean data for " + tic)
             # create empty DataFrame using complete time index
             tmp_df = pd.DataFrame(
                 columns=["open", "high", "low", "close", "adjcp", "volume"], index=times

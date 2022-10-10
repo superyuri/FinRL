@@ -13,7 +13,8 @@ import matplotlib.dates as mdates
 
 #TICKER_LIST = ['BTC-USD','ETH-USD','ADA-USD','BNB-USD','XRP-USD',
 #                'SOL-USD','DOT-USD', 'DOGE-USD','AVAX-USD','UNI-USD']
-TICKER_LIST = ['BTC-JPY','ETH-JPY','BCH-JPY','LTC-JPY','XRP-JPY', 'XEM-JPY','XLM-JPY', 'BAT-JPY','OMG-JPY','XTZ-JPY']
+#TICKER_LIST = ['BTC-JPY','ETH-JPY','BCH-JPY','LTC-JPY','XRP-JPY', 'XEM-JPY','XLM-JPY', 'BAT-JPY','OMG-JPY','XTZ-JPY']
+TICKER_LIST = ['BTC','ETH','BCH','LTC','XRP', 'XEM','XLM', 'BAT','OMG','XTZ']
 INDICATORS = ['macd', 'rsi', 'cci', 'dx'] #self-defined technical indicator list is NOT supported yet
 
 ERL_PARAMS = {
@@ -248,7 +249,7 @@ if __name__ == '__main__':
     API_BASE_URL = "https://paper-api.alpaca.markets"
     
     DATA_SOURCE='gmo'#'yahoofinance','gmo'
-    TIME_INTERVAL='1min'#'1D','1min'
+    TIME_INTERVAL='1Min'#'1D','1Min'
 
     #fl_model_names = ['multiple','advance']
     fl_model_names = ['multiple','advance']

@@ -401,17 +401,17 @@ class GMOProcessor:
                 NY = "America/New_York"
                 current_time = pd.Timestamp(day + " 09:30:00").tz_localize(NY)
                 for i in range(390):
-                    times = pd.concat([times,current_time])
+                    times += [current_time]
                     current_time += pd.Timedelta(minutes=1)
         else:
             raise ValueError(
-                "Data clean at given time interval is not supported for YahooFinance data."
+                "Data clean at given time interval is not supported for Gmo data."
             )
 
         # fill NaN data
         new_df = pd.DataFrame()
         for tic in tic_list:
-            print(("Clean data for ") + tic)
+            #print(("Clean data for ") + tic)
             # create empty DataFrame using complete time index
             tmp_df = pd.DataFrame(
                 columns=["open", "high", "low", "close", "adjcp", "volume"], index=times
@@ -463,7 +463,7 @@ class GMOProcessor:
             tmp_df["tic"] = tic
             new_df = pd.concat([new_df, tmp_df])
 
-            print(("Data clean for ") + tic + (" is finished."))
+            #print(("Data clean for ") + tic + (" is finished."))
 
         # reset index and rename columns
         new_df = new_df.reset_index()
@@ -575,7 +575,7 @@ class GMOProcessor:
         :return: (df) pandas dataframe
         """
         df = data.copy()
-        df_vix = self.download_data(
+        df_vix = self.download_data_yahoo(
             start_date=df.time.min(),
             end_date=df.time.max(),
             ticker_list=["^VIX"],
