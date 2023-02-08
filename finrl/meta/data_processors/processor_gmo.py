@@ -67,7 +67,7 @@ class GMOProcessor:
                 os.remove(filename)
             self.count(start_date,end_date,tic,time_interval)
             if path.exists(filename):
-                temp_df = pd.read_csv(filename, names=('date','open', 'high', 'low','close','volume','tic'),index_col=[0,6], skiprows=0)
+                temp_df = pd.read_csv(filename, names=('date','open', 'high', 'low','close','volume','tic'),index_col=[0,6], skiprows=1)
                 temp_df["adjcp"] = temp_df["close"]
                 data_df = pd.concat([data_df,temp_df],axis=0)
         # reset the index, we want to use numbers as index instead of dates
@@ -76,12 +76,12 @@ class GMOProcessor:
             # convert the column names to standardized names
             data_df.columns = [
                 "date",
+                "tic",
                 "open",
                 "high",
                 "low",
                 "close",
                 "volume",
-                "tic",
                 "adjcp",
             ]
         except NotImplementedError:
@@ -120,6 +120,7 @@ class GMOProcessor:
             filename = tic+'_'+time_interval+'.csv'
             fh = FileHandler(filename)
             logger.addHandler(fh)
+            logger.info("{},{},{},{},{},{},{}".format("date", "open", "high", "low", "close", "volume", "tic"))
             while start_datetime != end_datetime:
                 print("converting :", start_datetime)
                 year = str(start_datetime.year)
