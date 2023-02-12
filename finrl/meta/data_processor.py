@@ -36,15 +36,18 @@ class DataProcessor:
         else:
             raise ValueError("Data source input is NOT supported yet.")
 
+    def setPara(
+        self, ticker_list,
+        start_date,
+        end_date, 
+        time_interval
+    ):
+        self.processor.setPara(start_date,end_date,ticker_list,time_interval)
+
     def download_data(
-        self, ticker_list, start_date, end_date, time_interval
+        self, 
     ) -> pd.DataFrame:
-        df = self.processor.download_data(
-            ticker_list=ticker_list,
-            start_date=start_date,
-            end_date=end_date,
-            time_interval=time_interval,
-        )
+        df = self.processor.download_data()
         return df
 
     def clean_data(self, df) -> pd.DataFrame:

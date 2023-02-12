@@ -1,5 +1,6 @@
 import warnings
 import numpy as np
+import pandas as pd
 
 from env_multiple_crypto import CryptoEnv
 from env_advance_crypto import AdvCryptoEnv
@@ -14,7 +15,7 @@ import matplotlib.dates as mdates
 #TICKER_LIST = ['BTC-USD','ETH-USD','ADA-USD','BNB-USD','XRP-USD',
 #                'SOL-USD','DOT-USD', 'DOGE-USD','AVAX-USD','UNI-USD']
 #TICKER_LIST = ['BTC-JPY','ETH-JPY','BCH-JPY','LTC-JPY','XRP-JPY', 'XEM-JPY','XLM-JPY', 'BAT-JPY','OMG-JPY','XTZ-JPY']
-TICKER_LIST = ['BTC','ETH','BCH','LTC','XRP', 'XEM','XLM', 'BAT','OMG','XTZ']
+TICKER_LIST = ['BTC','ETH','BCH','LTC','XRP', 'XEM','XLM']
 INDICATORS = ['macd', 'rsi', 'cci', 'dx'] #self-defined technical indicator list is NOT supported yet
 
 ERL_PARAMS = {
@@ -73,15 +74,36 @@ class CryptoAll:
         
         #process data using unified data processor
         DP = DataProcessor(data_source, **kwargs)
-        downloadData = DP.download_data(ticker_list,
-                                                            start_date,
-                                                            end_date, 
-                                                            time_interval)
+        DP.setPara(ticker_list,
+                    start_date,
+                    end_date, 
+                    time_interval)
+        downloadData = DP.download_data()
+        '''downloadData = pd.read_csv("all.csv", names=('date','tic','open', 'high', 'low','close','volume','adjcp','day'), skiprows=1)
+        try:
+            # convert the column names to standardized names
+            downloadData.columns = [
+                "date",
+                "tic",
+                "open",
+                "high",
+                "low",
+                "close",
+                "volume",
+                "adjcp",
+                "day",
+            ]
+        except NotImplementedError:
+            print("the features are not supported currently")'''
         data = DP.clean_data(downloadData)
+        data.to_csv("all_clean.csv")
         data = DP.add_technical_indicator(data, technical_indicator_list)
+        data.to_csv("all_technical_indicator.csv")
         data = DP.add_turbulence(data)
+        data.to_csv("all_turbulence.csv")
         if if_vix:
             data = DP.add_vix(data)
+        data.to_csv("all_vix.csv")
         
         date_array,high_array,low_array, price_array, tech_array, turbulence_array = DP.df_to_array_new(data,if_vix)
         data_config = {'date_array': date_array,
@@ -97,7 +119,7 @@ class CryptoAll:
             env_instance = env(config=data_config)
         elif(self.fl_model_name == 'advance'):
             env = AdvCryptoEnv
-            env_instance = env('data',52,721,data_config,1,1000000,0.01,0.01,0.99,None,False,True,'P',model_name,False,False)
+            env_instance = env('data',37,505,data_config,1,1000000,0.01,0.01,0.99,None,False,True,'P',model_name,False,False)
         else:
             raise ValueError("env is NOT supported. Please check.")
 
@@ -142,10 +164,11 @@ class CryptoAll:
     
         #process data using unified data processor
         DP = DataProcessor(data_source, **kwargs)
-        downloadData = DP.download_data(ticker_list,
-                                                            start_date,
-                                                            end_date, 
-                                                            time_interval)
+        DP.setPara(ticker_list,
+                    start_date,
+                    end_date, 
+                    time_interval)
+        downloadData = DP.download_data()
         data = DP.clean_data(downloadData)
         data = DP.add_technical_indicator(data, technical_indicator_list)
         data = DP.add_turbulence(data)
@@ -167,7 +190,7 @@ class CryptoAll:
             env_instance = env(config=data_config)
         elif(self.fl_model_name == 'advance'):
             env = AdvCryptoEnv
-            env_instance = env('data',52,721,data_config,1,1000000,0.01,0.01,0.99,None,True,True,'P',model_name,True,False)
+            env_instance = env('data',37,505,data_config,1,1000000,0.01,0.01,0.99,None,True,True,'P',model_name,True,False)
         else:
             raise ValueError("env is NOT supported. Please check.")
 
@@ -237,7 +260,7 @@ class CryptoAll:
     
 # 動作確認
 if __name__ == '__main__':
-    TRAIN_START_DATE = '2022-01-01'
+    TRAIN_START_DATE = '2022-07-01'
     TRAIN_END_DATE = '2022-08-31'
 
     TEST_START_DATE = '2022-09-01'
@@ -252,9 +275,9 @@ if __name__ == '__main__':
     TIME_INTERVAL='1Min'#'1D','1Min'
 
     #fl_model_names = ['multiple','advance']
-    fl_model_names = ['multiple','advance']
+    fl_model_names = ['advance']
     #rl_model_names = ['A2C','DDPG','PPO','SAC','TD3','DQN']
-    rl_model_names = ['A2C','PPO']
+    rl_model_names = ['A2C']
     for fl_model_name in fl_model_names:
         if(fl_model_name == 'multiple'):
             env = CryptoEnv

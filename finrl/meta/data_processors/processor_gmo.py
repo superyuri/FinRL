@@ -40,10 +40,17 @@ class GMOProcessor:
 
     def __init__(self):
         pass
-
+    
+    # パラメータを渡す 
+    def setPara(self, start_date: str, end_date: str, ticker_list: list, time_interval: str):
+        self.start = start_date
+        self.end = end_date
+        self.ticker_list = ticker_list
+        self.time_interval = time_interval
+        
     # データダウンロード    
     def download_data(
-        self, start_date: str, end_date: str, ticker_list: list, time_interval: str
+            self
     ) -> pd.DataFrame:
         """Fetches data from Yahoo API
         Parameters
@@ -53,19 +60,14 @@ class GMOProcessor:
         `pd.DataFrame`
             7 columns: A date, open, high, low, close, volume and tick symbol
             for the specified stock ticker
-        """
-
-        self.start = start_date
-        self.end = end_date
-        self.time_interval = time_interval
-        
+        """        
         # Download and save the data in a pandas DataFrame:
         data_df = pd.DataFrame()
-        for tic in ticker_list:
-            filename = tic + '_'+time_interval+'.csv'
+        for tic in self.ticker_list:
+            filename = tic + '_'+self.time_interval+'.csv'
             if path.exists(filename):
                 os.remove(filename)
-            self.count(start_date,end_date,tic,time_interval)
+            self.count(self.start,self.end,tic,self.time_interval)
             if path.exists(filename):
                 temp_df = pd.read_csv(filename, names=('date','open', 'high', 'low','close','volume','tic'),index_col=[0,6], skiprows=1)
                 temp_df["adjcp"] = temp_df["close"]
@@ -97,7 +99,7 @@ class GMOProcessor:
         # print("Display DataFrame: ", data_df.head())
 
         data_df = data_df.sort_values(by=["date", "tic"]).reset_index(drop=True)
-
+        data_df.to_csv("all.csv")
         return data_df
 
 
@@ -393,16 +395,25 @@ class GMOProcessor:
         tic_list = np.unique(df.tic.values)
 
         # get complete time index
-        trading_days = self.get_trading_days(start=self.start, end=self.end)
+        trading_days = []
+        startdate = pd.Timestamp(self.start + " 00:00:00") 
+        enddate = pd.Timestamp(self.end + " 00:00:00") 
+        trading_days += [startdate.strftime('%Y-%m-%d')]
+
+        while startdate < enddate:
+            startdate += pd.Timedelta(days=1)
+            trading_days += [startdate.strftime('%Y-%m-%d')]
+
         if time_interval == "1D":
             times = trading_days
         elif time_interval == "1Min":
             times = []
             for day in trading_days:
                 NY = "America/New_York"
-                current_time = pd.Timestamp(day + " 09:30:00").tz_localize(NY)
-                for i in range(390):
-                    times += [current_time]
+                current_time = pd.Timestamp(day + " 21:01:00").tz_localize(NY)
+                current_time += pd.Timedelta(days=-1)
+                for i in range(1440):
+                    times += [current_time.strftime('%Y-%m-%d %H:%M:%S')]
                     current_time += pd.Timedelta(minutes=1)
         else:
             raise ValueError(
@@ -421,9 +432,10 @@ class GMOProcessor:
             tic_df = df[df.tic == tic]
             # fill empty DataFrame using orginal data
             for i in range(tic_df.shape[0]):
-                tmp_df.loc[tic_df.iloc[i]["time"]] = tic_df.iloc[i][
-                    ["open", "high", "low", "close", "adjcp", "volume"]
-                ]
+                #print(tic_df.iloc[i][["open", "high", "low", "close", "adjcp", "volume"]])
+                #print(tic_df.iloc[i]["time"])
+                #print(tmp_df.loc[tic_df.iloc[i]["time"]])
+                tmp_df.loc[tic_df.iloc[i]["time"]] = tic_df.iloc[i][["open", "high", "low", "close", "adjcp", "volume"]]
 
             # if close on start date is NaN, fill data with first valid close
             # and set volume to 0.
@@ -671,7 +683,11 @@ class GMOProcessor:
 # 動作確認
 if __name__ == '__main__':
     processor = GMOProcessor()
-    print(processor.download_data('2022-01-01','2022-01-31',['XTZ'],'1min'))
+    #print(processor.download_data('2023-01-01','2023-01-31',['BTC'],'1min'))
     #processor.count('2022-01-01','2022-01-31',['BTC'],'1min')
     #processor.download('BTC','2022-01-01','2022-01-31')
     #print(processor.get_history('BTC'))
+    temp_df = pd.read_csv("all.csv", names=('date','tic','open', 'high', 'low','close','volume','adjcp','day'), skiprows=1)
+    data = processor.clean_data(temp_df)
+    data.to_csv("all_clean.csv") 
+    
